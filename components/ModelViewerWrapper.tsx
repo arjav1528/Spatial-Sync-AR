@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 
-// Declare the model-viewer custom element type
+// Declare the model-viewer custom element type for React 18 & 19
 declare global {
   namespace JSX {
     interface IntrinsicElements {
@@ -18,6 +18,24 @@ declare global {
         'shadow-intensity'?: string;
         style?: React.CSSProperties;
       };
+    }
+  }
+  namespace React {
+    namespace JSX {
+      interface IntrinsicElements {
+        'model-viewer': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+          src?: string;
+          alt?: string;
+          ar?: boolean;
+          'ar-modes'?: string;
+          'ar-scale'?: string;
+          'camera-orbit'?: string;
+          'camera-controls'?: boolean;
+          'auto-rotate'?: boolean;
+          'shadow-intensity'?: string;
+          style?: React.CSSProperties;
+        };
+      }
     }
   }
 }
