@@ -1,0 +1,74 @@
+service: spatialsync-websocket
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ap-south-1
+  environment:
+    TABLE_NAME: SpatialSync_Prod
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:DeleteItem
+            - dynamodb:Query
+            - dynamodb:Scan
+          Resource:
+            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TABLE_NAME}
+            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TABLE_NAME}/index/*
+        - Effect: Allow
+          Action:
+            - execute-api:ManageConnections
+          Resource:
+            - arn:aws:execute-api:${self:provider.region}:*:*/@connections/*
+
+functions:
+  connect:
+    handler: handlers/connect.handler
+    events:
+      - websocket:
+          route: $connect
+  disconnect:
+    handler: handlers/disconnect.handler
+    events:
+      - websocket:
+          route: $disconnect
+  default:
+    handler: handlers/default.handler
+    events:
+      - websocket:
+          route: $default
+
+resources:
+  Resources:
+    SpatialSyncTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.TABLE_NAME}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+          - AttributeName: connectionId
+            AttributeType: S
+          - AttributeName: sessionId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: GSI1
+            KeySchema:
+              - AttributeName: connectionId
+                KeyType: HASH
+              - AttributeName: sessionId
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
