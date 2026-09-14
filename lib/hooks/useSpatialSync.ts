@@ -12,14 +12,33 @@ export function useSpatialSync(sessionId: string, token: string) {
     cameraOrbit,
     viewers,
     sendCameraUpdate,
+    setCameraOrbit,
   } = useSpatialStore();
 
   useEffect(() => {
     connect(sessionId, token);
+
+    // Fetch initial / current state on connect (handles reconnect state snap)
+    async function syncCurrentState() {
+      try {
+        const res = await fetch(`/api/session?id=${sessionId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.currentState?.cameraOrbit) {
+            setCameraOrbit(data.currentState.cameraOrbit);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch initial session state:', err);
+      }
+    }
+
+    syncCurrentState();
+
     return () => {
       disconnect();
     };
-  }, [sessionId, token, connect, disconnect]);
+  }, [sessionId, token, connect, disconnect, setCameraOrbit]);
 
   return {
     isConnected,
