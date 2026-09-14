@@ -1,68 +1,96 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import ModelViewerWrapper from '@/components/ModelViewerWrapper';
 import QRCodeDisplay from '@/components/QRCodeDisplay';
+import { useSpatialSync } from '@/lib/hooks/useSpatialSync';
 
 interface HostViewerProps {
   sessionId: string;
 }
 
 export default function HostViewer({ sessionId }: HostViewerProps) {
-  const [cameraOrbit, setCameraOrbit] = useState('0deg 75deg 2.5m');
-  const [isConnected, setIsConnected] = useState(false);
-  const [viewerCount, setViewerCount] = useState(0);
+  const router = useRouter();
+  const [modelUrl, setModelUrl] = useState('/models/demo.glb');
 
-  // TODO: Wire up useSpatialSync hook in Phase 5
+  const {
+    isConnected,
+    viewerCount,
+    sendUpdate,
+  } = useSpatialSync(sessionId, 'host-token');
+
+  // Fetch session metadata to get asset URL
+  useEffect(() => {
+    async function fetchSession() {
+      try {
+        const res = await fetch(`/api/session?id=${sessionId}`);
+        const data = await res.json();
+        if (data.session?.assetKey) {
+          setModelUrl(`https://${process.env.NEXT_PUBLIC_S3_BUCKET || ''}.s3.amazonaws.com/${data.session.assetKey}`);
+        }
+      } catch (err) {
+        console.error('Failed to fetch session metadata:', err);
+      }
+    }
+    fetchSession();
+  }, [sessionId]);
+
   const handleCameraChange = useCallback((orbit: string) => {
-    setCameraOrbit(orbit);
-    // sendUpdate(orbit) — will be added in Phase 5
-  }, []);
+    sendUpdate(orbit);
+  }, [sendUpdate]);
 
   return (
     <div className="flex h-screen">
       {/* Main 3D Viewer */}
       <div className="flex-1 relative">
         <ModelViewerWrapper
-          src="/models/demo.glb"
+          src={modelUrl}
           ar={false}
-          cameraOrbit={cameraOrbit}
+          cameraOrbit="0deg 75deg 2.5m"
           onCameraChange={handleCameraChange}
           interactive={true}
         />
 
         {/* Connection Status */}
-        <div className="absolute top-4 left-4 flex items-center gap-2 bg-gray-900/80 backdrop-blur px-4 py-2 rounded-full">
-          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`} />
-          <span className="text-sm">{isConnected ? 'Connected' : 'Disconnected'}</span>
+        <div className="absolute top-4 left-4 flex items-center gap-2 bg-gray-900/80 backdrop-blur px-4 py-2 rounded-full border border-gray-800">
+          <div className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-green-400 animate-pulse' : 'bg-amber-400'}`} />
+          <span className="text-sm font-medium">
+            {isConnected ? 'Live & Syncing' : 'Connecting to Cloud...'}
+          </span>
         </div>
       </div>
 
       {/* Sidebar */}
-      <div className="w-80 bg-gray-900 border-l border-gray-800 p-6 flex flex-col">
-        <h2 className="text-xl font-bold mb-6">Host Controls</h2>
+      <div className="w-80 bg-gray-900 border-l border-gray-800 p-6 flex flex-col justify-between">
+        <div>
+          <h2 className="text-xl font-bold mb-6">Host Controller</h2>
 
-        {/* Session Info */}
-        <div className="bg-gray-800 rounded-lg p-4 mb-6">
-          <p className="text-sm text-gray-400">Session ID</p>
-          <p className="text-2xl font-mono font-bold">{sessionId}</p>
-        </div>
+          {/* Session Info */}
+          <div className="bg-gray-800/80 border border-gray-700/50 rounded-lg p-4 mb-4">
+            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Session ID</p>
+            <p className="text-2xl font-mono font-bold text-blue-400">{sessionId}</p>
+          </div>
 
-        {/* Viewer Count */}
-        <div className="bg-gray-800 rounded-lg p-4 mb-6">
-          <p className="text-sm text-gray-400">Connected Viewers</p>
-          <p className="text-2xl font-bold">{viewerCount}</p>
-        </div>
+          {/* Viewer Count */}
+          <div className="bg-gray-800/80 border border-gray-700/50 rounded-lg p-4 mb-6">
+            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Connected Viewers</p>
+            <p className="text-3xl font-bold text-white">{viewerCount}</p>
+          </div>
 
-        {/* QR Code */}
-        <div className="flex-1">
-          <p className="text-sm text-gray-400 mb-3">Share Session</p>
-          <QRCodeDisplay sessionId={sessionId} />
+          {/* QR Code */}
+          <div className="mb-6">
+            <p className="text-xs text-gray-400 uppercase tracking-wider mb-3">Scan to Join AR</p>
+            <QRCodeDisplay sessionId={sessionId} />
+          </div>
         </div>
 
         {/* End Session */}
-        <button className="mt-4 w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-medium transition-colors">
-          End Session
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="w-full bg-red-600/90 hover:bg-red-600 text-white py-3 rounded-lg font-medium transition-colors text-sm"
+        >
+          End & View Analytics
         </button>
       </div>
     </div>

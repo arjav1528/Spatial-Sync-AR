@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import ModelViewerWrapper from '@/components/ModelViewerWrapper';
+import { useSpatialSync } from '@/lib/hooks/useSpatialSync';
 
 interface MobileViewerProps {
   sessionId: string;
@@ -18,22 +19,48 @@ function parseOrbit(orbit: string): { theta: number; phi: number; radius: number
 }
 
 export default function MobileViewer({ sessionId }: MobileViewerProps) {
+  const [modelUrl, setModelUrl] = useState('/models/demo.glb');
   const [displayOrbit, setDisplayOrbit] = useState('0deg 75deg 2.5m');
-  const [isConnected, setIsConnected] = useState(false);
+
+  const { cameraOrbit, isConnected } = useSpatialSync(sessionId, 'viewer-token');
+
   const targetOrbitRef = useRef({ theta: 0, phi: 75, radius: 2.5 });
   const currentOrbitRef = useRef({ theta: 0, phi: 75, radius: 2.5 });
   const gazeBufferRef = useRef<{ x: number; y: number; z: number; theta: number; phi: number; timestamp: number }[]>([]);
   const animFrameRef = useRef<number>(0);
 
-  // Lerp animation loop for smooth 60fps rendering
+  // Update target orbit whenever host broadcasts new camera position
+  useEffect(() => {
+    if (cameraOrbit) {
+      targetOrbitRef.current = parseOrbit(cameraOrbit);
+    }
+  }, [cameraOrbit]);
+
+  // Fetch session metadata to get asset URL
+  useEffect(() => {
+    async function fetchSession() {
+      try {
+        const res = await fetch(`/api/session?id=${sessionId}`);
+        const data = await res.json();
+        if (data.session?.assetKey) {
+          setModelUrl(`https://${process.env.NEXT_PUBLIC_S3_BUCKET || ''}.s3.amazonaws.com/${data.session.assetKey}`);
+        }
+      } catch (err) {
+        console.error('Failed to fetch session metadata:', err);
+      }
+    }
+    fetchSession();
+  }, [sessionId]);
+
+  // Lerp animation loop for smooth 60fps rendering locally
   useEffect(() => {
     const animate = () => {
       const current = currentOrbitRef.current;
       const target = targetOrbitRef.current;
 
-      current.theta = lerp(current.theta, target.theta, 0.1);
-      current.phi = lerp(current.phi, target.phi, 0.1);
-      current.radius = lerp(current.radius, target.radius, 0.1);
+      current.theta = lerp(current.theta, target.theta, 0.15);
+      current.phi = lerp(current.phi, target.phi, 0.15);
+      current.radius = lerp(current.radius, target.radius, 0.15);
 
       setDisplayOrbit(`${current.theta.toFixed(1)}deg ${current.phi.toFixed(1)}deg ${current.radius.toFixed(2)}m`);
 
@@ -59,7 +86,7 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             sessionId,
-            userId: 'viewer',
+            userId: 'viewer-device',
             vectors: vectorsCopy,
           }),
         });
@@ -77,41 +104,41 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
   const logGaze = useCallback(() => {
     const current = currentOrbitRef.current;
     gazeBufferRef.current.push({
-      x: current.radius * Math.sin(current.phi * Math.PI / 180) * Math.cos(current.theta * Math.PI / 180),
-      y: current.radius * Math.cos(current.phi * Math.PI / 180),
-      z: current.radius * Math.sin(current.phi * Math.PI / 180) * Math.sin(current.theta * Math.PI / 180),
+      x: current.radius * Math.sin((current.phi * Math.PI) / 180) * Math.cos((current.theta * Math.PI) / 180),
+      y: current.radius * Math.cos((current.phi * Math.PI) / 180),
+      z: current.radius * Math.sin((current.phi * Math.PI) / 180) * Math.sin((current.theta * Math.PI) / 180),
       theta: current.theta,
       phi: current.phi,
       timestamp: Date.now(),
     });
   }, []);
 
-  // Log gaze periodically within the animation loop
+  // Sample gaze at 5Hz
   useEffect(() => {
-    const gazeInterval = setInterval(logGaze, 200); // Sample at 5Hz
+    const gazeInterval = setInterval(logGaze, 200);
     return () => clearInterval(gazeInterval);
   }, [logGaze]);
 
   return (
     <div className="h-screen relative">
       <ModelViewerWrapper
-        src="/models/demo.glb"
+        src={modelUrl}
         ar={true}
         cameraOrbit={displayOrbit}
         interactive={false}
       />
 
       {/* Status Bar */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-gray-900/80 backdrop-blur px-4 py-2 rounded-full">
-        <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
-        <span className="text-sm text-white">{isConnected ? 'Synced' : 'Connecting...'}</span>
-        <span className="text-xs text-gray-400 ml-2">Session: {sessionId}</span>
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-gray-900/90 backdrop-blur px-4 py-2 rounded-full border border-gray-800 shadow-xl">
+        <div className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-green-400 animate-pulse' : 'bg-amber-400'}`} />
+        <span className="text-sm font-medium text-white">{isConnected ? 'Synced with Host' : 'Connecting...'}</span>
+        <span className="text-xs font-mono text-gray-400 border-l border-gray-700 pl-2">#{sessionId}</span>
       </div>
 
-      {/* AR Button */}
+      {/* AR Launch Button */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-medium text-lg shadow-lg shadow-blue-600/25 transition-all">
-          View in AR
+        <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg shadow-blue-600/30 transition-all flex items-center gap-3">
+          <span>👓</span> View in AR
         </button>
       </div>
     </div>
