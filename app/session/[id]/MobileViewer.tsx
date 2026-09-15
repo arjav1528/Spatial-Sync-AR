@@ -124,11 +124,26 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
   }, [logGaze]);
 
   const handleArClick = (e: React.MouseEvent) => {
-    const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (!isMobileDevice) {
-      e.preventDefault();
-      e.stopPropagation();
-      setShowArModal(true);
+    const modelViewerEl = document.querySelector('model-viewer') as any;
+    if (modelViewerEl && typeof modelViewerEl.canActivateAR !== 'undefined') {
+      if (modelViewerEl.canActivateAR) {
+        try {
+          modelViewerEl.activateAR();
+        } catch (err) {
+          console.warn('AR activation error:', err);
+        }
+      } else {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowArModal(true);
+      }
+    } else {
+      const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (!isMobileDevice) {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowArModal(true);
+      }
     }
   };
 
@@ -140,16 +155,14 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
         cameraOrbit={displayOrbit}
         interactive={false}
       >
-        {/* Slotted Native AR Launcher Button */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-xs px-4 z-20">
-          <button
-            slot="ar-button"
-            onClick={handleArClick}
-            className="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white py-3.5 rounded-full font-semibold text-base shadow-xl shadow-blue-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <span>🕶️</span> View Full Scale in AR
-          </button>
-        </div>
+        {/* Slotted Native AR Launcher Button — MUST be direct child of model-viewer */}
+        <button
+          slot="ar-button"
+          onClick={handleArClick}
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-xs bg-blue-600 hover:bg-blue-700 active:scale-95 text-white py-3.5 px-6 rounded-full font-semibold text-base shadow-xl shadow-blue-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer z-20 border-none outline-none"
+        >
+          <span>🕶️</span> View Full Scale in AR
+        </button>
       </ModelViewerWrapper>
 
       {/* Top Mobile Status Header */}

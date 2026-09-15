@@ -100,7 +100,7 @@ export default function ModelViewerWrapper({
       src={absoluteSrc}
       alt="3D Model"
       ar={ar || undefined}
-      ar-modes={ar ? 'scene-viewer quick-look webxr' : undefined}
+      ar-modes={ar ? 'webxr scene-viewer quick-look' : undefined}
       ar-placement="floor"
       ar-scale={ar ? 'auto' : undefined}
       camera-orbit={cameraOrbit}
