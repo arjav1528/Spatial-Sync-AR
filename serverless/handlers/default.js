@@ -1,5 +1,5 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, QueryCommand, PutCommand } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, QueryCommand, PutCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
 const { ApiGatewayManagementApiClient, PostToConnectionCommand } = require('@aws-sdk/client-apigatewaymanagementapi');
 
 const client = new DynamoDBClient({});
@@ -61,9 +61,17 @@ exports.handler = async (event) => {
             Data: payload,
           }));
         } catch (err) {
-          if (err.statusCode === 410) {
-            // Stale connection, clean up
-            console.log(`Stale connection: ${conn.connectionId}`);
+          // If connection is gone (410 Gone), purge stale record from DynamoDB
+          if (err.statusCode === 410 || err.name === 'GoneException' || err.$metadata?.httpStatusCode === 410) {
+            console.log(`Purging stale connection: ${conn.connectionId}`);
+            try {
+              await docClient.send(new DeleteCommand({
+                TableName: TABLE_NAME,
+                Key: { PK: conn.PK, SK: conn.SK },
+              }));
+            } catch (deleteErr) {
+              // ignore
+            }
           }
         }
       });
