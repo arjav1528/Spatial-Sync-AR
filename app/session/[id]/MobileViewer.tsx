@@ -22,6 +22,7 @@ function parseOrbit(orbit: string): { theta: number; phi: number; radius: number
 export default function MobileViewer({ sessionId }: MobileViewerProps) {
   const [modelUrl, setModelUrl] = useState('/models/demo.glb');
   const [displayOrbit, setDisplayOrbit] = useState('0deg 75deg 2.5m');
+  const [showArModal, setShowArModal] = useState(false);
 
   const { cameraOrbit, isConnected } = useSpatialSync(sessionId, 'viewer-token');
 
@@ -120,6 +121,19 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
     return () => clearInterval(gazeInterval);
   }, [logGaze]);
 
+  const handleArClick = () => {
+    const nativeTrigger = document.getElementById('native-ar-trigger');
+    if (nativeTrigger) {
+      nativeTrigger.click();
+    }
+
+    // Check if device supports AR hardware camera
+    const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (!isMobileDevice) {
+      setShowArModal(true);
+    }
+  };
+
   return (
     <div className="h-screen relative bg-gray-950 text-white select-none overflow-hidden">
       <ModelViewerWrapper
@@ -138,7 +152,7 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
         </div>
 
         <div className="bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[10px] font-mono px-2.5 py-1 rounded-full font-semibold">
-          WebXR Ready
+          WebXR Active
         </div>
       </div>
 
@@ -149,11 +163,43 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
       </div>
 
       {/* AR Launch Button */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-xs px-4">
-        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-full font-semibold text-base shadow-xl shadow-blue-600/30 transition-all flex items-center justify-center gap-2">
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-xs px-4 z-10">
+        <button
+          onClick={handleArClick}
+          className="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white py-3.5 rounded-full font-semibold text-base shadow-xl shadow-blue-600/30 transition-all flex items-center justify-center gap-2"
+        >
           <span>🕶️</span> View Full Scale in AR
         </button>
       </div>
+
+      {/* AR Device Help Modal */}
+      {showArModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
+            <div className="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center text-2xl mx-auto border border-blue-500/30">
+              📱
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white mb-1">WebXR AR Mobile Required</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Room-scale AR hologram projection requires a smartphone camera (iOS ARKit or Android ARCore).
+              </p>
+            </div>
+            <div className="bg-gray-950 p-3 rounded-xl border border-gray-800 text-left text-xs text-gray-300 space-y-1 font-mono">
+              <p className="text-blue-400 font-semibold font-sans">How to view in AR:</p>
+              <p>1. Open this link on your smartphone</p>
+              <p>2. Tap "View Full Scale in AR"</p>
+              <p>3. Point camera at floor plane</p>
+            </div>
+            <button
+              onClick={() => setShowArModal(false)}
+              className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-2.5 rounded-xl text-xs transition-colors"
+            >
+              Got it, continue in 3D Mode
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

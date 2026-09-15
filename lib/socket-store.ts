@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 interface SpatialState {
   socket: WebSocket | null;
+  sessionId: string | null;
   isConnected: boolean;
   connectionStatus: 'idle' | 'connecting' | 'connected' | 'disconnected' | 'error';
   cameraOrbit: string;
@@ -18,6 +19,7 @@ const THROTTLE_MS = 66; // ~15fps max send rate
 
 export const useSpatialStore = create<SpatialState>((set, get) => ({
   socket: null,
+  sessionId: null,
   isConnected: false,
   connectionStatus: 'idle',
   cameraOrbit: '0deg 75deg 2.5m',
@@ -32,7 +34,17 @@ export const useSpatialStore = create<SpatialState>((set, get) => ({
       return;
     }
 
-    set({ connectionStatus: 'connecting' });
+    // Don't re-connect if already connected to same session
+    const { socket, sessionId: currentSession } = get();
+    if (socket && currentSession === sessionId && socket.readyState === WebSocket.OPEN) {
+      return;
+    }
+
+    if (socket) {
+      socket.close();
+    }
+
+    set({ connectionStatus: 'connecting', sessionId });
     const ws = new WebSocket(`${wsUrl}?sessionId=${sessionId}&token=${token}`);
 
     ws.onopen = () => {
@@ -67,19 +79,20 @@ export const useSpatialStore = create<SpatialState>((set, get) => ({
     if (socket) {
       socket.close();
     }
-    set({ socket: null, isConnected: false, connectionStatus: 'disconnected' });
+    set({ socket: null, sessionId: null, isConnected: false, connectionStatus: 'disconnected' });
   },
 
   sendCameraUpdate: (orbit: string) => {
-    const { socket, isConnected, lastSendTime } = get();
+    const { socket, isConnected, lastSendTime, sessionId } = get();
     const now = Date.now();
 
     // Throttle to ~15fps
     if (now - lastSendTime < THROTTLE_MS) return;
-    if (!socket || !isConnected) return;
+    if (!socket || !isConnected || !sessionId) return;
 
     socket.send(JSON.stringify({
       action: 'SYNC_CAMERA',
+      sessionId: sessionId,
       data: { cameraOrbit: orbit },
     }));
 
