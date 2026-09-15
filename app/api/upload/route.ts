@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { s3Client, S3_BUCKET } from '@/lib/aws-config';
+import { s3Client, S3_BUCKET, getS3PublicUrl } from '@/lib/aws-config';
 import { v4 as uuidv4 } from 'uuid';
 
 const ALLOWED_TYPES = ['model/gltf-binary', 'model/vnd.usdz+zip', 'application/octet-stream'];
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       uploadUrl,
       assetKey,
-      publicUrl: `https://${S3_BUCKET}.s3.amazonaws.com/${assetKey}`,
+      publicUrl: getS3PublicUrl(assetKey),
     });
   } catch (error) {
     console.error('Upload URL generation error:', error);

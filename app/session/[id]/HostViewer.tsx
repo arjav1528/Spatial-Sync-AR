@@ -25,9 +25,16 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
     async function fetchSession() {
       try {
         const res = await fetch(`/api/session?id=${sessionId}`);
+        if (!res.ok) return;
         const data = await res.json();
         if (data.session?.assetKey) {
-          setModelUrl(`https://${process.env.NEXT_PUBLIC_S3_BUCKET || ''}.s3.amazonaws.com/${data.session.assetKey}`);
+          const key = data.session.assetKey;
+          if (key.startsWith('/') || key.startsWith('http')) {
+            setModelUrl(key);
+          } else {
+            const bucket = process.env.NEXT_PUBLIC_S3_BUCKET || 'spatial-sync-arjav';
+            setModelUrl(`https://${bucket}.s3.eu-central-1.amazonaws.com/${key}`);
+          }
         }
       } catch (err) {
         console.error('Failed to fetch session metadata:', err);
