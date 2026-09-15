@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import ModelViewerWrapper from '@/components/ModelViewerWrapper';
 import { useSpatialSync } from '@/lib/hooks/useSpatialSync';
+import { getS3PublicUrl } from '@/lib/aws-config';
 
 interface MobileViewerProps {
   sessionId: string;
@@ -44,13 +45,7 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
         if (!res.ok) return;
         const data = await res.json();
         if (data.session?.assetKey) {
-          const key = data.session.assetKey;
-          if (key.startsWith('/') || key.startsWith('http')) {
-            setModelUrl(key);
-          } else {
-            const bucket = process.env.NEXT_PUBLIC_S3_BUCKET || 'spatial-sync-arjav';
-            setModelUrl(`https://${bucket}.s3.eu-central-1.amazonaws.com/${key}`);
-          }
+          setModelUrl(getS3PublicUrl(data.session.assetKey));
         }
       } catch (err) {
         console.error('Failed to fetch session metadata:', err);
@@ -99,7 +94,6 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
         });
       } catch (err) {
         console.error('Analytics batch send failed:', err);
-        // Re-add failed vectors back to buffer
         gazeBufferRef.current = [...vectorsCopy, ...gazeBufferRef.current];
       }
     }, 5000);
@@ -127,7 +121,7 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
   }, [logGaze]);
 
   return (
-    <div className="h-screen relative">
+    <div className="h-screen relative bg-gray-950 text-white select-none overflow-hidden">
       <ModelViewerWrapper
         src={modelUrl}
         ar={true}
@@ -135,17 +129,29 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
         interactive={false}
       />
 
-      {/* Status Bar */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-gray-900/90 backdrop-blur px-4 py-2 rounded-full border border-gray-800 shadow-xl">
-        <div className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-green-400 animate-pulse' : 'bg-amber-400'}`} />
-        <span className="text-sm font-medium text-white">{isConnected ? 'Synced with Host' : 'Connecting...'}</span>
-        <span className="text-xs font-mono text-gray-400 border-l border-gray-700 pl-2">#{sessionId}</span>
+      {/* Top Mobile Status Header */}
+      <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10 pointer-events-none">
+        <div className="flex items-center gap-2 bg-gray-900/90 backdrop-blur px-3.5 py-1.5 rounded-full border border-gray-800 shadow-xl">
+          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+          <span className="text-xs font-medium text-white">{isConnected ? 'Host Synced' : 'Connecting...'}</span>
+          <span className="text-[10px] font-mono text-gray-400 border-l border-gray-700 pl-2">#{sessionId}</span>
+        </div>
+
+        <div className="bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[10px] font-mono px-2.5 py-1 rounded-full font-semibold">
+          WebXR Ready
+        </div>
+      </div>
+
+      {/* Camera Sync Telemetry Pill */}
+      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-gray-900/80 backdrop-blur px-4 py-1.5 rounded-full border border-gray-800 text-[11px] font-mono text-gray-300 flex items-center gap-2 pointer-events-none">
+        <span className="text-blue-400">🔄</span>
+        <span>Orbit: <span className="text-white font-bold">{displayOrbit}</span></span>
       </div>
 
       {/* AR Launch Button */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg shadow-blue-600/30 transition-all flex items-center gap-3">
-          <span>👓</span> View in AR
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-xs px-4">
+        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-full font-semibold text-base shadow-xl shadow-blue-600/30 transition-all flex items-center justify-center gap-2">
+          <span>🕶️</span> View Full Scale in AR
         </button>
       </div>
     </div>

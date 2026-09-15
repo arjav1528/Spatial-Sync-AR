@@ -22,5 +22,8 @@ export const s3Client = new S3Client({ region: REGION, credentials });
 export function getS3PublicUrl(assetKey: string): string {
   if (!assetKey) return '/models/demo.glb';
   if (assetKey.startsWith('/') || assetKey.startsWith('http')) return assetKey;
+  if (assetKey.includes('models/demo') || assetKey.startsWith('models/')) {
+    return `/${assetKey.replace(/^\/+/, '')}`;
+  }
   return `https://${S3_BUCKET}.s3.${REGION}.amazonaws.com/${assetKey}`;
 }
