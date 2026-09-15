@@ -35,13 +35,13 @@ export default function HomePage() {
               href="/admin"
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-medium text-lg transition-colors shadow-lg shadow-blue-600/25"
             >
-              Upload 3D Asset
+              Rep Portal (Upload & Start Session)
             </Link>
             <Link
               href="/auth/signin"
               className="bg-gray-800 hover:bg-gray-700 text-white px-8 py-4 rounded-xl font-medium text-lg transition-colors border border-gray-700"
             >
-              Sign In as Host
+              Sign In as Rep
             </Link>
           </div>
         </div>

@@ -2,11 +2,11 @@ import { withAuth } from "next-auth/middleware";
 
 export default withAuth(
   function middleware(req) {
-    // Custom middleware logic if needed
+    // Custom middleware logic
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token,
+      authorized: ({ token }) => !!token && token.role === "rep",
     },
     pages: {
       signIn: "/auth/signin",
@@ -14,6 +14,8 @@ export default withAuth(
   }
 );
 
+// ONLY protect Sales Rep routes (/admin, /dashboard).
+// Public viewer routes (/session/[id], /api/session, /api/analytics) are completely unauthenticated.
 export const config = {
-  matcher: ["/admin/:path*", "/dashboard/:path*", "/session/:path*"],
+  matcher: ["/admin/:path*", "/dashboard/:path*"],
 };

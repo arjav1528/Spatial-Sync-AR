@@ -10,18 +10,14 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        // Mock users for hackathon
-        const users = [
-          { id: '1', email: 'host@spatialsync.io', password: 'demo123', name: 'Demo Host', role: 'host' },
-          { id: '2', email: 'admin@spatialsync.io', password: 'admin123', name: 'Admin User', role: 'admin' },
-        ];
-
-        const user = users.find(
-          (u) => u.email === credentials?.email && u.password === credentials?.password
-        );
-
-        if (user) {
-          return { id: user.id, email: user.email, name: user.name, role: user.role };
+        // Sales Rep authentication (role: 'rep')
+        if (credentials?.email && credentials?.password) {
+          return {
+            id: 'rep-1',
+            email: credentials.email,
+            name: 'Sales Representative',
+            role: 'rep',
+          };
         }
         return null;
       },
@@ -30,13 +26,13 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as unknown as { role: string }).role;
+        token.role = (user as unknown as { role: string }).role || 'rep';
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as { role?: string }).role = token.role as string;
+        (session.user as { role?: string }).role = (token.role as string) || 'rep';
       }
       return session;
     },
