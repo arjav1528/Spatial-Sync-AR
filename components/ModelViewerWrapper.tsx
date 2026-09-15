@@ -46,6 +46,7 @@ interface ModelViewerWrapperProps {
   cameraOrbit?: string;
   onCameraChange?: (orbit: string) => void;
   interactive?: boolean;
+  autoRotate?: boolean;
   onArClick?: () => void;
 }
 
@@ -55,6 +56,7 @@ export default function ModelViewerWrapper({
   cameraOrbit = '0deg 75deg 2.5m',
   onCameraChange,
   interactive = true,
+  autoRotate = false,
   onArClick,
 }: ModelViewerWrapperProps) {
   const viewerRef = useRef<HTMLElement>(null);
@@ -107,7 +109,7 @@ export default function ModelViewerWrapper({
       ar-scale={ar ? 'auto' : undefined}
       camera-orbit={cameraOrbit}
       camera-controls={interactive || undefined}
-      auto-rotate={!interactive || undefined}
+      auto-rotate={autoRotate || undefined}
       shadow-intensity="1"
       style={{ width: '100%', height: '100%' }}
     >

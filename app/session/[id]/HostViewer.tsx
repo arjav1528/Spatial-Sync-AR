@@ -115,6 +115,7 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
             cameraOrbit={currentOrbit}
             onCameraChange={handleCameraChange}
             interactive={!autoRotate}
+            autoRotate={autoRotate}
           />
 
           {/* Floating Telemetry HUD */}
