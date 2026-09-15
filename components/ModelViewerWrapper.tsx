@@ -47,7 +47,7 @@ interface ModelViewerWrapperProps {
   onCameraChange?: (orbit: string) => void;
   interactive?: boolean;
   autoRotate?: boolean;
-  onArClick?: () => void;
+  children?: React.ReactNode;
 }
 
 export default function ModelViewerWrapper({
@@ -57,7 +57,7 @@ export default function ModelViewerWrapper({
   onCameraChange,
   interactive = true,
   autoRotate = false,
-  onArClick,
+  children,
 }: ModelViewerWrapperProps) {
   const viewerRef = useRef<HTMLElement>(null);
 
@@ -85,20 +85,6 @@ export default function ModelViewerWrapper({
     return () => viewer.removeEventListener('camera-change', handleCameraChange);
   }, [onCameraChange]);
 
-  const handleArButtonClick = () => {
-    if (onArClick) {
-      onArClick();
-    }
-    const viewer = viewerRef.current as unknown as { activateAR?: () => void; canActivateAR?: boolean };
-    if (viewer && viewer.activateAR) {
-      try {
-        viewer.activateAR();
-      } catch (err) {
-        console.log('AR activation:', err);
-      }
-    }
-  };
-
   return (
     <model-viewer
       ref={viewerRef}
@@ -113,14 +99,7 @@ export default function ModelViewerWrapper({
       shadow-intensity="1"
       style={{ width: '100%', height: '100%' }}
     >
-      {ar && (
-        <button
-          slot="ar-button"
-          onClick={handleArButtonClick}
-          className="hidden"
-          id="native-ar-trigger"
-        />
-      )}
+      {children}
     </model-viewer>
   );
 }

@@ -122,12 +122,6 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
   }, [logGaze]);
 
   const handleArClick = () => {
-    const nativeTrigger = document.getElementById('native-ar-trigger');
-    if (nativeTrigger) {
-      nativeTrigger.click();
-    }
-
-    // Check if device supports AR hardware camera
     const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     if (!isMobileDevice) {
       setShowArModal(true);
@@ -141,7 +135,18 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
         ar={true}
         cameraOrbit={displayOrbit}
         interactive={false}
-      />
+      >
+        {/* Slotted Native AR Launcher Button */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-xs px-4 z-20">
+          <button
+            slot="ar-button"
+            onClick={handleArClick}
+            className="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white py-3.5 rounded-full font-semibold text-base shadow-xl shadow-blue-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>🕶️</span> View Full Scale in AR
+          </button>
+        </div>
+      </ModelViewerWrapper>
 
       {/* Top Mobile Status Header */}
       <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10 pointer-events-none">
@@ -157,22 +162,12 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
       </div>
 
       {/* Camera Sync Telemetry Pill */}
-      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-gray-900/80 backdrop-blur px-4 py-1.5 rounded-full border border-gray-800 text-[11px] font-mono text-gray-300 flex items-center gap-2 pointer-events-none">
+      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-gray-900/80 backdrop-blur px-4 py-1.5 rounded-full border border-gray-800 text-[11px] font-mono text-gray-300 flex items-center gap-2 pointer-events-none z-10">
         <span className="text-blue-400">🔄</span>
         <span>Orbit: <span className="text-white font-bold">{displayOrbit}</span></span>
       </div>
 
-      {/* AR Launch Button */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-xs px-4 z-10">
-        <button
-          onClick={handleArClick}
-          className="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white py-3.5 rounded-full font-semibold text-base shadow-xl shadow-blue-600/30 transition-all flex items-center justify-center gap-2"
-        >
-          <span>🕶️</span> View Full Scale in AR
-        </button>
-      </div>
-
-      {/* AR Device Help Modal */}
+      {/* AR Device Help Modal for Desktop */}
       {showArModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-6">
           <div className="bg-gray-900 border border-gray-800 rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
