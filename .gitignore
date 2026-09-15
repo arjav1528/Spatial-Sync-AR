@@ -40,3 +40,4 @@ next-env.d.ts
 # serverless
 .serverless/
 serverless/.serverless/
+spatialsync_AR_blueprint.md
