@@ -13,6 +13,7 @@ declare global {
         'ar-modes'?: string;
         'ar-scale'?: string;
         'ar-placement'?: string;
+        'ios-src'?: string;
         'camera-orbit'?: string;
         'camera-controls'?: boolean;
         'auto-rotate'?: boolean;
@@ -31,6 +32,7 @@ declare global {
           'ar-modes'?: string;
           'ar-scale'?: string;
           'ar-placement'?: string;
+          'ios-src'?: string;
           'camera-orbit'?: string;
           'camera-controls'?: boolean;
           'auto-rotate'?: boolean;
@@ -44,9 +46,11 @@ declare global {
 
 interface ModelViewerWrapperProps {
   src: string;
+  iosSrc?: string;
   ar?: boolean;
   cameraOrbit?: string;
   onCameraChange?: (orbit: string) => void;
+  onArStatus?: (status: string) => void;
   interactive?: boolean;
   autoRotate?: boolean;
   children?: React.ReactNode;
@@ -54,9 +58,11 @@ interface ModelViewerWrapperProps {
 
 export default function ModelViewerWrapper({
   src,
+  iosSrc,
   ar = false,
   cameraOrbit = '0deg 75deg 2.5m',
   onCameraChange,
+  onArStatus,
   interactive = true,
   autoRotate = false,
   children,
@@ -66,7 +72,6 @@ export default function ModelViewerWrapper({
 
   useEffect(() => {
     setMounted(true);
-    // Dynamically import model-viewer (client-side only)
     import('@google/model-viewer');
   }, []);
 
@@ -89,10 +94,27 @@ export default function ModelViewerWrapper({
     return () => viewer.removeEventListener('camera-change', handleCameraChange);
   }, [onCameraChange]);
 
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!viewer || !onArStatus) return;
+
+    const handleArStatus = (e: Event) => {
+      const status = (e as CustomEvent<{ status: string }>).detail?.status;
+      if (status) onArStatus(status);
+    };
+
+    viewer.addEventListener('ar-status', handleArStatus);
+    return () => viewer.removeEventListener('ar-status', handleArStatus);
+  }, [onArStatus]);
+
   // Ensure src is an absolute URL so native AR apps (SceneViewer/QuickLook) can download it
-  const absoluteSrc = mounted && typeof window !== 'undefined' && src.startsWith('/')
-    ? `${window.location.origin}${src}`
-    : src;
+  const toAbsolute = (url: string) =>
+    mounted && typeof window !== 'undefined' && url.startsWith('/')
+      ? `${window.location.origin}${url}`
+      : url;
+
+  const absoluteSrc = toAbsolute(src);
+  const absoluteIosSrc = iosSrc ? toAbsolute(iosSrc) : undefined;
 
   return (
     <model-viewer
@@ -103,6 +125,7 @@ export default function ModelViewerWrapper({
       ar-modes={ar ? 'webxr scene-viewer quick-look' : undefined}
       ar-placement="floor"
       ar-scale={ar ? 'auto' : undefined}
+      ios-src={absoluteIosSrc}
       camera-orbit={cameraOrbit}
       camera-controls={interactive || undefined}
       auto-rotate={autoRotate || undefined}
