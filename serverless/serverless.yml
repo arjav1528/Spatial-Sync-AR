@@ -3,9 +3,9 @@ service: spatialsync-websocket
 provider:
   name: aws
   runtime: nodejs20.x
-  region: ap-south-1
+  region: eu-central-1
   environment:
-    TABLE_NAME: SpatialSync_Prod
+    TABLE_NAME: spatial-sync-arjav
   iam:
     role:
       statements:
@@ -41,34 +41,3 @@ functions:
     events:
       - websocket:
           route: $default
-
-resources:
-  Resources:
-    SpatialSyncTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: ${self:provider.environment.TABLE_NAME}
-        BillingMode: PAY_PER_REQUEST
-        AttributeDefinitions:
-          - AttributeName: PK
-            AttributeType: S
-          - AttributeName: SK
-            AttributeType: S
-          - AttributeName: connectionId
-            AttributeType: S
-          - AttributeName: sessionId
-            AttributeType: S
-        KeySchema:
-          - AttributeName: PK
-            KeyType: HASH
-          - AttributeName: SK
-            KeyType: RANGE
-        GlobalSecondaryIndexes:
-          - IndexName: GSI1
-            KeySchema:
-              - AttributeName: connectionId
-                KeyType: HASH
-              - AttributeName: sessionId
-                KeyType: RANGE
-            Projection:
-              ProjectionType: ALL
