@@ -1,0 +1,53 @@
+{
+  "modelId": "demo",
+  "hotspots": [
+    {
+      "id": "helmet",
+      "label": "Helmet",
+      "title": "Advanced Composite Helmet",
+      "description": "Lightweight carbon-fiber composite shell with an integrated visor locking system and oxygen mask mount point. Rated for altitudes up to 25,000 ft.",
+      "specs": {
+        "Material": "Carbon Fiber Composite",
+        "Weight": "1.2 kg",
+        "Visor": "UV-resistant polycarbonate",
+        "Rating": "25,000 ft altitude"
+      },
+      "position": "0 1.5 0.05",
+      "normal": "0 1 0",
+      "cameraOrbit": "10deg 55deg 1.2m",
+      "cameraTarget": "0m 1.5m 0m"
+    },
+    {
+      "id": "oxygen-tube",
+      "label": "Oxygen System",
+      "title": "Pressurized Oxygen Delivery Tube",
+      "description": "Reinforced silicone oxygen supply tube running from the helmet to the chest-mounted regulator. Withstands pressures up to 300 PSI and extreme temperature swings.",
+      "specs": {
+        "Material": "Reinforced Silicone",
+        "Max Pressure": "300 PSI",
+        "Temp Range": "-60°C to +90°C",
+        "Length": "0.85 m"
+      },
+      "position": "0.12 0.9 0.2",
+      "normal": "0 0 1",
+      "cameraOrbit": "-30deg 70deg 1.4m",
+      "cameraTarget": "0.1m 0.9m 0.1m"
+    },
+    {
+      "id": "chest-regulator",
+      "label": "Chest Regulator",
+      "title": "Pressure Regulator Unit",
+      "description": "Dual-redundant chest-mounted pressure regulator automatically adjusts oxygen flow based on altitude and breathing demand.",
+      "specs": {
+        "Type": "Dual-redundant",
+        "Flow Rate": "0–12 L/min",
+        "Power": "Internal Li-Ion, 24h",
+        "Interface": "Tactile dial + LED"
+      },
+      "position": "0 0.75 0.25",
+      "normal": "0 0 1",
+      "cameraOrbit": "5deg 80deg 1.0m",
+      "cameraTarget": "0m 0.75m 0.1m"
+    }
+  ]
+}
