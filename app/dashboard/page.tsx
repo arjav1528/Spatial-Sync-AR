@@ -19,6 +19,7 @@ export default function DashboardPage() {
   const [sessionId, setSessionId] = useState('');
   const [vectors, setVectors] = useState<AnalyticsVector[]>([]);
   const [loading, setLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [modelUrl, setModelUrl] = useState('/models/demo.glb');
 
   const fetchAnalytics = async () => {
@@ -38,13 +39,14 @@ export default function DashboardPage() {
         if (sessionData.assetUrl || sessionData.session?.assetUrl) {
           setModelUrl(sessionData.assetUrl || sessionData.session?.assetUrl);
         } else if (sessionData.session?.assetKey) {
-          setModelUrl(`https://${process.env.NEXT_PUBLIC_S3_BUCKET || ''}.s3.amazonaws.com/${sessionData.session.assetKey}`);
+          setModelUrl(`https://${process.env.NEXT_PUBLIC_S3_BUCKET || ''}.s3.${process.env.NEXT_PUBLIC_AWS_REGION || 'eu-central-1'}.amazonaws.com/${sessionData.session.assetKey}`);
         }
       }
     } catch (err) {
       console.error('Failed to fetch analytics:', err);
     } finally {
       setLoading(false);
+      setHasLoaded(true);
     }
   };
 
@@ -99,6 +101,14 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Empty State */}
+        {hasLoaded && vectors.length === 0 && (
+          <div className="bg-gray-900 border border-gray-800 rounded-lg p-8 text-center">
+            <p className="text-gray-400 text-sm mb-1">No gaze data found for session <span className="font-mono text-white">"{sessionId}"</span>.</p>
+            <p className="text-gray-600 text-xs">Check the session ID, or wait for viewers to join the session.</p>
+          </div>
+        )}
+
         {/* 3D Heatmap Section */}
         {vectors.length > 0 && (
           <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
@@ -118,7 +128,7 @@ export default function DashboardPage() {
                 ar={false}
                 interactive={true}
               />
-              <HeatmapOverlay gazeData={vectors} width={900} height={500} />
+              <HeatmapOverlay gazeData={vectors} />
             </div>
           </div>
         )}
