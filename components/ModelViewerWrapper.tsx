@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // Declare the model-viewer custom element type for React 18 & 19
 declare global {
@@ -12,6 +12,7 @@ declare global {
         ar?: boolean;
         'ar-modes'?: string;
         'ar-scale'?: string;
+        'ar-placement'?: string;
         'camera-orbit'?: string;
         'camera-controls'?: boolean;
         'auto-rotate'?: boolean;
@@ -29,6 +30,7 @@ declare global {
           ar?: boolean;
           'ar-modes'?: string;
           'ar-scale'?: string;
+          'ar-placement'?: string;
           'camera-orbit'?: string;
           'camera-controls'?: boolean;
           'auto-rotate'?: boolean;
@@ -60,8 +62,10 @@ export default function ModelViewerWrapper({
   children,
 }: ModelViewerWrapperProps) {
   const viewerRef = useRef<HTMLElement>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     // Dynamically import model-viewer (client-side only)
     import('@google/model-viewer');
   }, []);
@@ -85,13 +89,19 @@ export default function ModelViewerWrapper({
     return () => viewer.removeEventListener('camera-change', handleCameraChange);
   }, [onCameraChange]);
 
+  // Ensure src is an absolute URL so native AR apps (SceneViewer/QuickLook) can download it
+  const absoluteSrc = mounted && typeof window !== 'undefined' && src.startsWith('/')
+    ? `${window.location.origin}${src}`
+    : src;
+
   return (
     <model-viewer
       ref={viewerRef}
-      src={src}
+      src={absoluteSrc}
       alt="3D Model"
       ar={ar || undefined}
-      ar-modes={ar ? 'webxr scene-viewer quick-look' : undefined}
+      ar-modes={ar ? 'scene-viewer quick-look webxr' : undefined}
+      ar-placement="floor"
       ar-scale={ar ? 'auto' : undefined}
       camera-orbit={cameraOrbit}
       camera-controls={interactive || undefined}
