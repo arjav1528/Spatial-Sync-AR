@@ -121,9 +121,11 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
     return () => clearInterval(gazeInterval);
   }, [logGaze]);
 
-  const handleArClick = () => {
+  const handleArClick = (e: React.MouseEvent) => {
     const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     if (!isMobileDevice) {
+      e.preventDefault();
+      e.stopPropagation();
       setShowArModal(true);
     }
   };
