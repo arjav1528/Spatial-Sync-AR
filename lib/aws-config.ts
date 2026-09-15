@@ -1,6 +1,7 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
-import { S3Client } from '@aws-sdk/client-s3';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 export const REGION = process.env.AWS_REGION || 'eu-central-1';
 export const TABLE_NAME = process.env.DYNAMODB_TABLE_NAME || 'spatial-sync-arjav';
@@ -26,4 +27,23 @@ export function getS3PublicUrl(assetKey: string): string {
     return `/${assetKey.replace(/^\/+/, '')}`;
   }
   return `https://${S3_BUCKET}.s3.${REGION}.amazonaws.com/${assetKey}`;
+}
+
+export async function getS3AssetUrl(assetKey: string): Promise<string> {
+  if (!assetKey) return '/models/demo.glb';
+  if (assetKey.startsWith('/') || assetKey.startsWith('http')) return assetKey;
+  if (assetKey.includes('models/demo') || assetKey.startsWith('models/')) {
+    return `/${assetKey.replace(/^\/+/, '')}`;
+  }
+
+  try {
+    const command = new GetObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: assetKey,
+    });
+    return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+  } catch (err) {
+    console.error('Failed to generate presigned GET URL:', err);
+    return getS3PublicUrl(assetKey);
+  }
 }

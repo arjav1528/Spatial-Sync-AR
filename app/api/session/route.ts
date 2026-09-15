@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PutCommand, GetCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { docClient, TABLE_NAME } from '@/lib/aws-config';
+import { docClient, TABLE_NAME, getS3AssetUrl } from '@/lib/aws-config';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: NextRequest) {
@@ -60,10 +60,16 @@ export async function GET(request: NextRequest) {
       Select: 'COUNT',
     }));
 
+    let assetUrl = '/models/demo.glb';
+    if (meta.Item?.assetKey) {
+      assetUrl = await getS3AssetUrl(meta.Item.assetKey);
+    }
+
     return NextResponse.json({
-      session: meta.Item || null,
+      session: meta.Item ? { ...meta.Item, assetUrl } : null,
       currentState: state.Item || null,
       viewerCount: connections.Count || 0,
+      assetUrl,
     });
   } catch (error) {
     console.error('Session retrieval error:', error);

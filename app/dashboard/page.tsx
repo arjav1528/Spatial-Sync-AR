@@ -35,7 +35,9 @@ export default function DashboardPage() {
 
       if (sessionRes && sessionRes.ok) {
         const sessionData = await sessionRes.json();
-        if (sessionData.session?.assetKey) {
+        if (sessionData.assetUrl || sessionData.session?.assetUrl) {
+          setModelUrl(sessionData.assetUrl || sessionData.session?.assetUrl);
+        } else if (sessionData.session?.assetKey) {
           setModelUrl(`https://${process.env.NEXT_PUBLIC_S3_BUCKET || ''}.s3.amazonaws.com/${sessionData.session.assetKey}`);
         }
       }

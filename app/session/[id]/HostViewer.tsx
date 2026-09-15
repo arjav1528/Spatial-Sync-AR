@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import ModelViewerWrapper from '@/components/ModelViewerWrapper';
 import QRCodeDisplay from '@/components/QRCodeDisplay';
 import { useSpatialSync } from '@/lib/hooks/useSpatialSync';
-import { getS3PublicUrl } from '@/lib/aws-config';
 
 interface HostViewerProps {
   sessionId: string;
@@ -25,17 +24,19 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
     sendUpdate,
   } = useSpatialSync(sessionId, 'host-token');
 
-  // Fetch session metadata to get asset URL
+  // Fetch session metadata to get presigned asset URL
   useEffect(() => {
     async function fetchSession() {
       try {
         const res = await fetch(`/api/session?id=${sessionId}`);
         if (!res.ok) return;
         const data = await res.json();
+        const url = data.assetUrl || data.session?.assetUrl;
+        if (url) {
+          setModelUrl(url);
+        }
         if (data.session?.assetKey) {
-          const key = data.session.assetKey;
-          setAssetName(key.split('/').pop() || '3D Asset');
-          setModelUrl(getS3PublicUrl(key));
+          setAssetName(data.session.assetKey.split('/').pop() || '3D Asset');
         }
       } catch (err) {
         console.error('Failed to fetch session metadata:', err);

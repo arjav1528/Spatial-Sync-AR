@@ -45,7 +45,9 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
         const res = await fetch(`/api/session?id=${sessionId}`);
         if (!res.ok) return;
         const data = await res.json();
-        if (data.session?.assetKey) {
+        if (data.assetUrl || data.session?.assetUrl) {
+          setModelUrl(data.assetUrl || data.session?.assetUrl);
+        } else if (data.session?.assetKey) {
           setModelUrl(getS3PublicUrl(data.session.assetKey));
         }
       } catch (err) {
