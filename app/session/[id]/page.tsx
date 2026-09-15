@@ -4,19 +4,22 @@ import MobileViewer from './MobileViewer';
 
 interface SessionPageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ role?: string }>;
 }
 
-export default async function SessionPage({ params }: SessionPageProps) {
+export default async function SessionPage({ params, searchParams }: SessionPageProps) {
   const { id } = await params;
+  const { role } = await searchParams;
   const headersList = await headers();
   const userAgent = headersList.get('user-agent') || '';
 
-  // Simple mobile detection
+  // Detect mobile device OR explicit role=viewer query param
   const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+  const isViewerRole = role === 'viewer' || (isMobile && role !== 'host');
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
-      {isMobile ? (
+      {isViewerRole ? (
         <MobileViewer sessionId={id} />
       ) : (
         <HostViewer sessionId={id} />
