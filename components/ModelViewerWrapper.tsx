@@ -15,6 +15,7 @@ declare global {
         'ar-placement'?: string;
         'ios-src'?: string;
         'camera-orbit'?: string;
+        'camera-target'?: string;
         'camera-controls'?: boolean;
         'auto-rotate'?: boolean;
         'shadow-intensity'?: string;
@@ -34,6 +35,7 @@ declare global {
           'ar-placement'?: string;
           'ios-src'?: string;
           'camera-orbit'?: string;
+          'camera-target'?: string;
           'camera-controls'?: boolean;
           'auto-rotate'?: boolean;
           'shadow-intensity'?: string;
@@ -44,13 +46,17 @@ declare global {
   }
 }
 
+type Vector3D = { x: number; y: number; z: number };
+
 interface ModelViewerWrapperProps {
   src: string;
   iosSrc?: string;
   ar?: boolean;
   cameraOrbit?: string;
+  cameraTarget?: string;
   onCameraChange?: (orbit: string) => void;
   onArStatus?: (status: string) => void;
+  onSurfaceClick?: (hit: { position: Vector3D; normal: Vector3D }) => void;
   interactive?: boolean;
   autoRotate?: boolean;
   children?: React.ReactNode;
@@ -61,8 +67,10 @@ export default function ModelViewerWrapper({
   iosSrc,
   ar = false,
   cameraOrbit = '0deg 75deg 2.5m',
+  cameraTarget,
   onCameraChange,
   onArStatus,
+  onSurfaceClick,
   interactive = true,
   autoRotate = false,
   children,
@@ -107,6 +115,36 @@ export default function ModelViewerWrapper({
     return () => viewer.removeEventListener('ar-status', handleArStatus);
   }, [onArStatus]);
 
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!viewer || !onSurfaceClick) return;
+
+    let downX = 0;
+    let downY = 0;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      downX = e.offsetX;
+      downY = e.offsetY;
+    };
+
+    const handleClick = (e: MouseEvent) => {
+      if (Math.hypot(e.offsetX - downX, e.offsetY - downY) > 6) return;
+      const mv = viewer as unknown as {
+        positionAndNormalFromPoint: (x: number, y: number) => { position: Vector3D; normal: Vector3D } | null;
+      };
+      if (typeof mv.positionAndNormalFromPoint !== 'function') return;
+      const hit = mv.positionAndNormalFromPoint(e.offsetX, e.offsetY);
+      if (hit) onSurfaceClick(hit);
+    };
+
+    viewer.addEventListener('mousedown', handleMouseDown as EventListener);
+    viewer.addEventListener('click', handleClick as EventListener);
+    return () => {
+      viewer.removeEventListener('mousedown', handleMouseDown as EventListener);
+      viewer.removeEventListener('click', handleClick as EventListener);
+    };
+  }, [onSurfaceClick]);
+
   // Ensure src is an absolute URL so native AR apps (SceneViewer/QuickLook) can download it
   const toAbsolute = (url: string) =>
     mounted && typeof window !== 'undefined' && url.startsWith('/')
@@ -127,6 +165,7 @@ export default function ModelViewerWrapper({
       ar-scale={ar ? 'auto' : undefined}
       ios-src={absoluteIosSrc}
       camera-orbit={cameraOrbit}
+      camera-target={cameraTarget}
       camera-controls={interactive || undefined}
       auto-rotate={autoRotate || undefined}
       shadow-intensity="1"
