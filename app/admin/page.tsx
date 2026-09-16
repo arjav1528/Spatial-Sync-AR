@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import FileDropzone from '@/components/FileDropzone';
 import Navbar from '@/components/Navbar';
 
@@ -52,13 +53,21 @@ export default function AdminPage() {
             <p className="text-gray-400">Upload .glb and .usdz 3D assets for live AR pitches.</p>
           </div>
 
-          <button
-            onClick={() => startSession('models/demo.glb')}
-            disabled={creatingSession}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg font-medium text-sm transition-colors flex items-center gap-2"
-          >
-            <span>🚀</span> Start Demo Session
-          </button>
+          <div className="flex gap-2">
+            <Link
+              href="/admin/annotate?assetKey=models%2Fdemo.glb&assetUrl=%2Fmodels%2Fdemo.glb"
+              className="bg-gray-800 hover:bg-gray-700 text-gray-200 px-4 py-2.5 rounded-lg font-medium text-sm transition-colors border border-gray-700 flex items-center gap-2"
+            >
+              <span>📌</span> Edit Demo Annotations
+            </Link>
+            <button
+              onClick={() => startSession('models/demo.glb')}
+              disabled={creatingSession}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg font-medium text-sm transition-colors flex items-center gap-2"
+            >
+              <span>🚀</span> Start Demo Session
+            </button>
+          </div>
         </div>
 
         <FileDropzone onUploadComplete={handleUploadComplete} />
@@ -74,13 +83,21 @@ export default function AdminPage() {
                     <p className="text-xs text-gray-500 font-mono truncate mt-1">{asset.key}</p>
                   </div>
 
-                  <button
-                    onClick={() => startSession(asset.key)}
-                    disabled={creatingSession}
-                    className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-                  >
-                    {creatingSession ? 'Creating Session...' : 'Start Live Session'}
-                  </button>
+                  <div className="mt-4 flex gap-2">
+                    <Link
+                      href={`/admin/annotate?assetKey=${encodeURIComponent(asset.key)}&assetUrl=${encodeURIComponent(asset.url)}`}
+                      className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-200 py-2.5 rounded-lg text-sm font-medium transition-colors text-center border border-gray-700"
+                    >
+                      Edit Annotations
+                    </Link>
+                    <button
+                      onClick={() => startSession(asset.key)}
+                      disabled={creatingSession}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                    >
+                      {creatingSession ? 'Creating...' : 'Start Session'}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

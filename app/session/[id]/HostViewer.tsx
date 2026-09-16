@@ -4,6 +4,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ModelViewerWrapper from '@/components/ModelViewerWrapper';
 import QRCodeDisplay from '@/components/QRCodeDisplay';
+import HotspotMarker, { Hotspot } from '@/components/HotspotMarker';
+import AnnotationPanel from '@/components/AnnotationPanel';
 import { useSpatialSync } from '@/lib/hooks/useSpatialSync';
 
 interface HostViewerProps {
@@ -14,9 +16,12 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
   const router = useRouter();
   const [modelUrl, setModelUrl] = useState('/models/demo.glb');
   const [currentOrbit, setCurrentOrbit] = useState('0deg 75deg 2.5m');
-  const [activeTab, setActiveTab] = useState<'share' | 'participants' | 'asset'>('share');
+  const [activeTab, setActiveTab] = useState<'share' | 'participants' | 'asset' | 'hotspots'>('share');
   const [autoRotate, setAutoRotate] = useState(false);
   const [assetName, setAssetName] = useState('3D Asset');
+  const [hotspots, setHotspots] = useState<Hotspot[]>([]);
+  const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
+  const [cameraTarget, setCameraTarget] = useState<string | undefined>(undefined);
 
   const {
     isConnected,
@@ -24,7 +29,7 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
     sendUpdate,
   } = useSpatialSync(sessionId, 'host-token');
 
-  // Fetch session metadata to get presigned asset URL
+  // Fetch session metadata, then load matching annotations
   useEffect(() => {
     async function fetchSession() {
       try {
@@ -32,11 +37,21 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
         if (!res.ok) return;
         const data = await res.json();
         const url = data.assetUrl || data.session?.assetUrl;
-        if (url) {
-          setModelUrl(url);
-        }
-        if (data.session?.assetKey) {
-          setAssetName(data.session.assetKey.split('/').pop() || '3D Asset');
+        if (url) setModelUrl(url);
+
+        const assetKey: string = data.session?.assetKey || '';
+        const filename = assetKey.split('/').pop() || '3D Asset';
+        setAssetName(filename);
+
+        const modelId = filename.replace(/\.[^.]+$/, '');
+        try {
+          const hotspotsRes = await fetch(`/api/hotspots?modelId=${encodeURIComponent(modelId)}`);
+          if (hotspotsRes.ok) {
+            const hotspotsData = await hotspotsRes.json();
+            setHotspots(hotspotsData.hotspots || []);
+          }
+        } catch {
+          // No hotspots for this model — silent degradation
         }
       } catch (err) {
         console.error('Failed to fetch session metadata:', err);
@@ -53,8 +68,21 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
   const handleResetView = () => {
     const defaultOrbit = '0deg 75deg 2.5m';
     setCurrentOrbit(defaultOrbit);
+    setCameraTarget(undefined);
+    setSelectedHotspot(null);
     sendUpdate(defaultOrbit);
   };
+
+  const handleHotspotSelect = useCallback((hotspot: Hotspot) => {
+    setSelectedHotspot(prev => prev?.id === hotspot.id ? null : hotspot);
+    if (selectedHotspot?.id === hotspot.id) {
+      setCameraTarget(undefined);
+      return;
+    }
+    setCurrentOrbit(hotspot.cameraOrbit);
+    setCameraTarget(hotspot.cameraTarget);
+    sendUpdate(hotspot.cameraOrbit);
+  }, [selectedHotspot, sendUpdate]);
 
   return (
     <div className="flex flex-col h-screen bg-gray-950 text-white select-none overflow-hidden">
@@ -114,10 +142,27 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
             src={modelUrl}
             ar={false}
             cameraOrbit={currentOrbit}
+            cameraTarget={cameraTarget}
             onCameraChange={handleCameraChange}
             interactive={!autoRotate}
             autoRotate={autoRotate}
-          />
+          >
+            {hotspots.map((hotspot) => (
+              <HotspotMarker
+                key={hotspot.id}
+                hotspot={hotspot}
+                selected={selectedHotspot?.id === hotspot.id}
+                onClick={() => handleHotspotSelect(hotspot)}
+              />
+            ))}
+          </ModelViewerWrapper>
+
+          {selectedHotspot && (
+            <AnnotationPanel
+              hotspot={selectedHotspot}
+              onClose={() => { setSelectedHotspot(null); setCameraTarget(undefined); }}
+            />
+          )}
 
           {/* Floating Telemetry HUD */}
           <div className="absolute top-4 left-4 bg-gray-900/80 backdrop-blur border border-gray-800/80 rounded-xl p-3.5 shadow-2xl font-mono text-xs space-y-1.5 pointer-events-none">
@@ -148,14 +193,14 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
             </div>
 
             {/* Sidebar Tabs */}
-            <div className="grid grid-cols-3 gap-1 bg-gray-950 p-1 rounded-xl border border-gray-800 text-xs font-medium">
+            <div className="grid grid-cols-4 gap-1 bg-gray-950 p-1 rounded-xl border border-gray-800 text-xs font-medium">
               <button
                 onClick={() => setActiveTab('share')}
                 className={`py-2 rounded-lg transition-colors ${
                   activeTab === 'share' ? 'bg-blue-600 text-white font-semibold' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                Join Room
+                Join
               </button>
               <button
                 onClick={() => setActiveTab('participants')}
@@ -163,7 +208,7 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
                   activeTab === 'participants' ? 'bg-blue-600 text-white font-semibold' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                Viewers <span className="bg-blue-500/30 text-blue-300 px-1.5 py-0.2 rounded text-[10px]">{viewerCount}</span>
+                Viewers <span className="bg-blue-500/30 text-blue-300 px-1 rounded text-[10px]">{viewerCount}</span>
               </button>
               <button
                 onClick={() => setActiveTab('asset')}
@@ -171,7 +216,18 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
                   activeTab === 'asset' ? 'bg-blue-600 text-white font-semibold' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                Asset Specs
+                Specs
+              </button>
+              <button
+                onClick={() => setActiveTab('hotspots')}
+                className={`py-2 rounded-lg transition-colors flex items-center justify-center gap-1 ${
+                  activeTab === 'hotspots' ? 'bg-blue-600 text-white font-semibold' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Parts
+                {hotspots.length > 0 && (
+                  <span className="bg-blue-500/30 text-blue-300 px-1 rounded text-[10px]">{hotspots.length}</span>
+                )}
               </button>
             </div>
 
@@ -262,6 +318,36 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
                   <span className="text-gray-400 text-[11px] block">Spatial Scale</span>
                   <span className="font-medium text-emerald-400 font-mono">1:1 Full Physical Scale</span>
                 </div>
+              </div>
+            )}
+
+            {activeTab === 'hotspots' && (
+              <div className="space-y-2">
+                {hotspots.length === 0 ? (
+                  <div className="text-center py-6 text-xs text-gray-500">
+                    No annotations for this model.
+                  </div>
+                ) : (
+                  hotspots.map((hotspot) => (
+                    <button
+                      key={hotspot.id}
+                      onClick={() => handleHotspotSelect(hotspot)}
+                      className={`w-full text-left p-3 rounded-xl border transition-all text-xs ${
+                        selectedHotspot?.id === hotspot.id
+                          ? 'bg-emerald-500/10 border-emerald-500/40 text-white'
+                          : 'bg-gray-950 border-gray-800 text-gray-300 hover:border-blue-500/40 hover:bg-blue-500/5'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                          selectedHotspot?.id === hotspot.id ? 'bg-emerald-400' : 'bg-blue-500'
+                        }`} />
+                        <span className="font-semibold">{hotspot.label}</span>
+                      </div>
+                      <p className="text-gray-500 leading-relaxed line-clamp-2 pl-4">{hotspot.description}</p>
+                    </button>
+                  ))
+                )}
               </div>
             )}
           </div>
