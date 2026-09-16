@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import ModelViewerWrapper from '@/components/ModelViewerWrapper';
+import HotspotMarker, { Hotspot } from '@/components/HotspotMarker';
 import { useSpatialSync } from '@/lib/hooks/useSpatialSync';
 import { getS3PublicUrl } from '@/lib/aws-config';
 
@@ -28,6 +29,9 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
   const [showArModal, setShowArModal] = useState(false);
   const [arStatus, setArStatus] = useState<ArStatus>('inactive');
   const [showGestureHints, setShowGestureHints] = useState(false);
+  const [hotspots, setHotspots] = useState<Hotspot[]>([]);
+  const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
+  const [isIosDevice, setIsIosDevice] = useState(false);
 
   const { cameraOrbit, isConnected } = useSpatialSync(sessionId, 'viewer-token');
 
@@ -43,7 +47,12 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
     }
   }, [cameraOrbit]);
 
-  // Fetch session metadata to get asset URL
+  // Detect iOS to handle QuickLook limitation (no custom HTML overlays)
+  useEffect(() => {
+    setIsIosDevice(/iPhone|iPad|iPod/i.test(navigator.userAgent));
+  }, []);
+
+  // Fetch session metadata + hotspots for this model
   useEffect(() => {
     async function fetchSession() {
       try {
@@ -59,6 +68,21 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
           setIosSrc(url);
         } else {
           setModelUrl(url);
+        }
+
+        const assetKey: string = data.session?.assetKey || '';
+        const filename = assetKey.split('/').pop() || '';
+        const modelId = filename.replace(/\.[^.]+$/, '');
+        if (modelId) {
+          try {
+            const hotspotsRes = await fetch(`/api/hotspots?modelId=${encodeURIComponent(modelId)}`);
+            if (hotspotsRes.ok) {
+              const hotspotsData = await hotspotsRes.json();
+              setHotspots(hotspotsData.hotspots || []);
+            }
+          } catch {
+            // No hotspots — silent degradation
+          }
         }
       } catch (err) {
         console.error('Failed to fetch session metadata:', err);
@@ -137,6 +161,7 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
     if (status === 'session-started') {
       setArStatus('scanning');
       setShowGestureHints(false);
+      setSelectedHotspot(null);
     } else if (status === 'object-placed') {
       setArStatus('placed');
       setShowGestureHints(true);
@@ -144,7 +169,12 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
     } else if (status === 'failed' || status === 'not-presenting') {
       setArStatus('inactive');
       setShowGestureHints(false);
+      setSelectedHotspot(null);
     }
+  }, []);
+
+  const handleHotspotTap = useCallback((hotspot: Hotspot) => {
+    setSelectedHotspot((prev: Hotspot | null) => prev?.id === hotspot.id ? null : hotspot);
   }, []);
 
   const handleArClick = (e: React.MouseEvent) => {
@@ -209,6 +239,16 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
         >
           <span>🛋️</span> View in My Room
         </button>
+
+        {/* Hotspot pins — rendered as WebXR DOM overlay in AR mode */}
+        {hotspots.map((hotspot) => (
+          <HotspotMarker
+            key={hotspot.id}
+            hotspot={hotspot}
+            selected={selectedHotspot?.id === hotspot.id}
+            onClick={() => handleHotspotTap(hotspot)}
+          />
+        ))}
       </ModelViewerWrapper>
 
       {/* Top Mobile Status Header */}
@@ -262,6 +302,66 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
               <span className="text-gray-600">·</span>
               <span>Twist to rotate</span>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* AR Hotspot Annotation Card — tapping a pin shows this */}
+      {selectedHotspot && (
+        <div className="absolute top-20 left-4 right-4 z-30 pointer-events-auto animate-fade-in">
+          <div className="bg-gray-950/95 backdrop-blur-md border border-blue-500/30 rounded-2xl p-5 shadow-2xl">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <p className="text-[10px] font-semibold text-blue-400 uppercase tracking-widest mb-1">
+                  {selectedHotspot.label}
+                </p>
+                <h3 className="text-base font-bold text-white leading-snug">
+                  {selectedHotspot.title}
+                </h3>
+              </div>
+              <button
+                onClick={() => setSelectedHotspot(null)}
+                className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors text-lg leading-none"
+                aria-label="Close annotation"
+              >
+                ×
+              </button>
+            </div>
+            <p className="text-sm text-gray-300 leading-relaxed mb-4">
+              {selectedHotspot.description}
+            </p>
+            {Object.keys(selectedHotspot.specs).length > 0 && (
+              <div className="border-t border-gray-800 pt-3 grid grid-cols-2 gap-x-4 gap-y-2">
+                {(Object.entries(selectedHotspot.specs) as [string, string][]).map(([k, v]) => (
+                  <div key={k}>
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wide">{k}</p>
+                    <p className="text-xs font-semibold text-white">{v}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* iOS Pre-AR Hotspot Info — QuickLook can't render DOM overlays so list hotspots before launch */}
+      {isIosDevice && hotspots.length > 0 && arStatus === 'inactive' && !selectedHotspot && (
+        <div className="absolute bottom-24 left-4 right-4 z-10 pointer-events-none">
+          <div className="bg-gray-900/85 backdrop-blur border border-gray-700/60 rounded-xl px-4 py-3">
+            <p className="text-[10px] font-semibold text-amber-400 uppercase tracking-widest mb-2">
+              📌 Component Annotations
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {hotspots.map((h) => (
+                <span
+                  key={h.id}
+                  className="text-[10px] font-medium text-gray-300 bg-gray-800 border border-gray-700 rounded-full px-2.5 py-0.5"
+                >
+                  {h.label}
+                </span>
+              ))}
+            </div>
+            <p className="text-[10px] text-gray-500 mt-2">Tap pins in 3D view to explore. iOS AR QuickLook shows the model only.</p>
           </div>
         </div>
       )}
