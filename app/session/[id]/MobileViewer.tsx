@@ -148,15 +148,34 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
   }, []);
 
   const handleArClick = (e: React.MouseEvent) => {
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     const modelViewerEl = document.querySelector('model-viewer') as any;
-    if (modelViewerEl && typeof modelViewerEl.canActivateAR !== 'undefined') {
+
+    if (modelViewerEl) {
       if (modelViewerEl.canActivateAR) {
         try {
           modelViewerEl.activateAR();
+          return;
         } catch (err) {
           console.warn('AR activation error:', err);
         }
-      } else {
+      }
+
+      // Fallback for iOS Chrome / iOS browsers where canActivateAR might evaluate false
+      if (isIOS) {
+        try {
+          if (typeof modelViewerEl.activateAR === 'function') {
+            modelViewerEl.activateAR();
+          }
+        } catch (err) {
+          console.warn('iOS AR launch error:', err);
+        }
+        return;
+      }
+
+      // Show help modal on desktop OS without camera hardware
+      const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (!isMobileDevice) {
         e.preventDefault();
         e.stopPropagation();
         setShowArModal(true);
@@ -186,6 +205,7 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
           slot="ar-button"
           onClick={handleArClick}
           className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-xs bg-blue-600 hover:bg-blue-700 active:scale-95 text-white py-3.5 px-6 rounded-full font-semibold text-base shadow-xl shadow-blue-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer z-20 border-none outline-none"
+          style={{ display: 'flex' }}
         >
           <span>🛋️</span> View in My Room
         </button>

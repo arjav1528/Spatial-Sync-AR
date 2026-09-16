@@ -160,7 +160,7 @@ export default function ModelViewerWrapper({
       src={absoluteSrc}
       alt="3D Model"
       ar={ar || undefined}
-      ar-modes={ar ? 'webxr scene-viewer quick-look' : undefined}
+      ar-modes={ar ? 'quick-look scene-viewer webxr' : undefined}
       ar-placement="floor"
       ar-scale={ar ? 'auto' : undefined}
       ios-src={absoluteIosSrc}
