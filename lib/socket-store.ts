@@ -66,15 +66,47 @@ export const useSpatialStore = create<SpatialState>((set, get) => ({
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+
         if (data.action === 'SYNC_CAMERA' && data.data?.cameraOrbit) {
-          set({ cameraOrbit: data.data.cameraOrbit });
+          const rawPayload: string = data.data.cameraOrbit;
+
+          // Extract camera orbit string (e.g. "0deg 75deg 2.5m")
+          const orbitPart = rawPayload.split('|')[0];
+          if (orbitPart) {
+            set({ cameraOrbit: orbitPart });
+          }
+
+          // Extract laser cursor if encoded in payload
+          const laserMatch = rawPayload.match(/\|LASER:([^|]+)\|([^|]+)/);
+          if (laserMatch) {
+            set({
+              laserCursor: {
+                position: laserMatch[1],
+                normal: laserMatch[2],
+                active: true,
+              },
+            });
+          } else if (rawPayload.includes('|NOLASER')) {
+            set({ laserCursor: null });
+          }
+
+          // Extract hotspot selection if encoded in payload
+          const hotspotMatch = rawPayload.match(/\|HOTSPOT:([^|]+)/);
+          if (hotspotMatch) {
+            set({ selectedHotspotId: hotspotMatch[1] });
+          } else if (rawPayload.includes('|NOHOTSPOT')) {
+            set({ selectedHotspotId: null });
+          }
         }
+
         if (data.action === 'SYNC_CURSOR') {
           set({ laserCursor: data.data });
         }
+
         if (data.action === 'SYNC_HOTSPOT') {
           set({ selectedHotspotId: data.data?.hotspotId ?? null });
         }
+
         if (data.action === 'VIEWER_UPDATE' && data.viewers) {
           set({ viewers: data.viewers });
         }
@@ -101,43 +133,55 @@ export const useSpatialStore = create<SpatialState>((set, get) => ({
   },
 
   sendCameraUpdate: (orbit: string) => {
-    const { socket, isConnected, lastSendTime, sessionId } = get();
+    const { socket, isConnected, lastSendTime, sessionId, laserCursor, selectedHotspotId } = get();
     const now = Date.now();
 
-    // Throttle to ~15fps
     if (now - lastSendTime < THROTTLE_MS) return;
     if (!socket || !isConnected || !sessionId) return;
+
+    const laserPart = laserCursor && laserCursor.active ? `|LASER:${laserCursor.position}|${laserCursor.normal}` : '|NOLASER';
+    const hotspotPart = selectedHotspotId ? `|HOTSPOT:${selectedHotspotId}` : '|NOHOTSPOT';
+    const fullPayload = `${orbit}${laserPart}${hotspotPart}`;
 
     socket.send(JSON.stringify({
       action: 'SYNC_CAMERA',
       sessionId: sessionId,
-      data: { cameraOrbit: orbit },
+      data: { cameraOrbit: fullPayload },
     }));
 
-    set({ lastSendTime: now });
+    set({ cameraOrbit: orbit, lastSendTime: now });
   },
 
   sendCursorUpdate: (cursor: LaserCursor | null) => {
-    const { socket, isConnected, sessionId } = get();
+    const { socket, isConnected, sessionId, cameraOrbit, selectedHotspotId } = get();
     if (!socket || !isConnected || !sessionId) return;
 
+    const laserPart = cursor && cursor.active ? `|LASER:${cursor.position}|${cursor.normal}` : '|NOLASER';
+    const hotspotPart = selectedHotspotId ? `|HOTSPOT:${selectedHotspotId}` : '|NOHOTSPOT';
+    const fullPayload = `${cameraOrbit.split('|')[0]}${laserPart}${hotspotPart}`;
+
+    // Send encoded payload over SYNC_CAMERA so AWS Lambda broadcasts it 100% reliably
     socket.send(JSON.stringify({
-      action: 'SYNC_CURSOR',
+      action: 'SYNC_CAMERA',
       sessionId: sessionId,
-      data: cursor,
+      data: { cameraOrbit: fullPayload },
     }));
 
     set({ laserCursor: cursor });
   },
 
   sendHotspotUpdate: (hotspotId: string | null) => {
-    const { socket, isConnected, sessionId } = get();
+    const { socket, isConnected, sessionId, cameraOrbit, laserCursor } = get();
     if (!socket || !isConnected || !sessionId) return;
 
+    const laserPart = laserCursor && laserCursor.active ? `|LASER:${laserCursor.position}|${laserCursor.normal}` : '|NOLASER';
+    const hotspotPart = hotspotId ? `|HOTSPOT:${hotspotId}` : '|NOHOTSPOT';
+    const fullPayload = `${cameraOrbit.split('|')[0]}${laserPart}${hotspotPart}`;
+
     socket.send(JSON.stringify({
-      action: 'SYNC_HOTSPOT',
+      action: 'SYNC_CAMERA',
       sessionId: sessionId,
-      data: { hotspotId },
+      data: { cameraOrbit: fullPayload },
     }));
 
     set({ selectedHotspotId: hotspotId });
