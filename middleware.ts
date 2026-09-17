@@ -1,7 +1,7 @@
 import { withAuth } from "next-auth/middleware";
 
 export default withAuth(
-  function middleware(req) {
+  function middleware() {
     // Custom middleware logic
   },
   {
@@ -14,8 +14,8 @@ export default withAuth(
   }
 );
 
-// ONLY protect Sales Rep routes (/admin, /dashboard).
+// ONLY protect Sales Rep routes (/rep, /admin, /dashboard).
 // Public viewer routes (/session/[id], /api/session, /api/analytics) are completely unauthenticated.
 export const config = {
-  matcher: ["/admin/:path*", "/dashboard/:path*"],
+  matcher: ["/rep/:path*", "/admin/:path*", "/dashboard/:path*"],
 };
