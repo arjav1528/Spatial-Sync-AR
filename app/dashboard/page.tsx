@@ -5,6 +5,10 @@ import { useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import ModelViewerWrapper from '@/components/ModelViewerWrapper';
 import HeatmapOverlay from '@/components/HeatmapOverlay';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { BarChart2, Eye, Gauge, Clock, Search } from 'lucide-react';
 
 interface AnalyticsVector {
   x: number;
@@ -80,63 +84,92 @@ function DashboardContent() {
       : '0';
 
   return (
-    <main className="max-w-5xl mx-auto px-6 py-8">
-      <h1 className="text-2xl font-bold text-white mb-6">Analytics</h1>
+    <main className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <BarChart2 className="w-6 h-6 text-blue-500" />
+          Analytics
+        </h1>
+      </div>
 
-      {/* Session Selector */}
-      <div className="flex gap-3 mb-8">
-        <input
+      {/* Session Selector Input */}
+      <div className="flex gap-3">
+        <Input
           type="text"
           value={sessionId}
           onChange={(e) => setSessionId(e.target.value)}
           placeholder="Enter Session ID (e.g. A1B2C3)"
-          className="flex-1 bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 font-mono text-sm"
+          className="font-mono text-sm"
         />
-        <button
+        <Button
           onClick={handleManualFetch}
           disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 px-5 py-2.5 rounded-xl text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer text-white"
+          className="gap-2"
         >
+          <Search className="w-3.5 h-3.5" />
           {loading ? 'Loading...' : 'Load Analytics'}
-        </button>
+        </Button>
       </div>
 
-      {/* Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-          <p className="text-gray-400 text-xs">Total Gaze Points</p>
-          <p className="text-2xl font-bold mt-1 text-white">{vectors.length}</p>
-        </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-5">
-          <p className="text-gray-400 text-xs">Avg. Buyer Proximity</p>
-          <p className="text-2xl font-bold mt-1 text-white">{avgProximity}m</p>
-        </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-5">
-          <p className="text-gray-400 text-xs">Session Duration</p>
-          <p className="text-2xl font-bold mt-1 text-white">{sessionDuration}s</p>
-        </div>
+      {/* Metrics Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="border-gray-800 bg-gray-900/90 p-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center text-blue-400 border border-blue-500/30">
+              <Eye className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-gray-400 text-xs font-medium">Total Gaze Points</p>
+              <p className="text-2xl font-bold text-white mt-0.5">{vectors.length}</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="border-gray-800 bg-gray-900/90 p-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-emerald-600/20 rounded-lg flex items-center justify-center text-emerald-400 border border-emerald-500/30">
+              <Gauge className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-gray-400 text-xs font-medium">Avg. Buyer Proximity</p>
+              <p className="text-2xl font-bold text-white mt-0.5">{avgProximity}m</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="border-gray-800 bg-gray-900/90 p-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-purple-600/20 rounded-lg flex items-center justify-center text-purple-400 border border-purple-500/30">
+              <Clock className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-gray-400 text-xs font-medium">Session Duration</p>
+              <p className="text-2xl font-bold text-white mt-0.5">{sessionDuration}s</p>
+            </div>
+          </div>
+        </Card>
       </div>
 
       {/* Empty State */}
       {hasLoaded && vectors.length === 0 && (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center text-xs text-gray-400">
+        <Card className="border-gray-800 bg-gray-900/60 p-6 text-center text-xs text-gray-400">
           No gaze data found for session <span className="font-mono text-white">"{sessionId}"</span>.
-        </div>
+        </Card>
       )}
 
       {/* 3D Heatmap Section */}
       {vectors.length > 0 && (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-          <h2 className="text-base font-bold text-white mb-4">3D Engagement Heatmap</h2>
-          <div className="aspect-video bg-gray-950 rounded-lg overflow-hidden relative border border-gray-800">
-            <ModelViewerWrapper
-              src={modelUrl}
-              ar={false}
-              interactive={true}
-            />
-            <HeatmapOverlay gazeData={vectors} />
-          </div>
-        </div>
+        <Card className="border-gray-800 bg-gray-900/90 p-5 space-y-4">
+          <CardHeader className="p-0">
+            <CardTitle className="text-base font-bold text-white">3D Engagement Heatmap</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="aspect-video bg-gray-950 rounded-lg overflow-hidden relative border border-gray-800">
+              <ModelViewerWrapper src={modelUrl} ar={false} interactive={true} />
+              <HeatmapOverlay gazeData={vectors} />
+            </div>
+          </CardContent>
+        </Card>
       )}
     </main>
   );
