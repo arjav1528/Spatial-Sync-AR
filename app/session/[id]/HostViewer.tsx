@@ -7,6 +7,7 @@ import QRCodeDisplay from '@/components/QRCodeDisplay';
 import HotspotMarker, { Hotspot } from '@/components/HotspotMarker';
 import AnnotationPanel from '@/components/AnnotationPanel';
 import { useSpatialSync } from '@/lib/hooks/useSpatialSync';
+import { Button } from '@/components/ui/button';
 
 interface HostViewerProps {
   sessionId: string;
@@ -84,45 +85,46 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-950 text-white select-none overflow-hidden">
+    <div className="flex flex-col h-screen bg-zinc-950 text-white select-none overflow-hidden">
       {/* Clean Top Header */}
-      <header className="h-14 bg-gray-900 border-b border-gray-800 px-6 flex items-center justify-between z-20 flex-shrink-0">
+      <header className="h-14 bg-zinc-900 border-b border-zinc-800 px-6 flex items-center justify-between z-20 flex-shrink-0">
         <div className="flex items-center gap-4">
           <span className="font-bold tracking-tight text-lg">
-            <span className="text-blue-500">Spatial</span>Sync
+            <span className="text-white">Spatial</span>
+            <span className="text-zinc-500 font-medium">Sync</span>
           </span>
-          <span className="text-xs font-mono text-gray-400 bg-gray-950 px-2.5 py-1 rounded border border-gray-800">
+          <span className="text-xs font-mono text-zinc-400 bg-zinc-950 px-2.5 py-1 rounded border border-zinc-800">
             Session: #{sessionId}
           </span>
         </div>
 
         <div className="flex items-center gap-4 text-xs font-medium">
           <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-            <span className="text-gray-300">{isConnected ? 'Live' : 'Connecting'}</span>
+            <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-white' : 'bg-zinc-600'}`} />
+            <span className="text-zinc-300">{isConnected ? 'Live' : 'Connecting'}</span>
           </div>
 
-          <button
+          <Button
             onClick={handleResetView}
-            className="bg-gray-800 hover:bg-gray-700 text-gray-200 px-3 py-1.5 rounded-lg border border-gray-700 cursor-pointer"
+            variant="outline"
+            size="sm"
           >
             Reset View
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setAutoRotate(!autoRotate)}
-            className={`px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${
-              autoRotate ? 'bg-blue-600 text-white border-blue-500' : 'bg-gray-800 text-gray-300 border-gray-700'
-            }`}
+            variant={autoRotate ? 'default' : 'outline'}
+            size="sm"
           >
             Auto Rotate
-          </button>
+          </Button>
         </div>
       </header>
 
       {/* Main Content Body */}
       <div className="flex flex-1 relative overflow-hidden">
         {/* 3D Viewport */}
-        <div className="flex-1 relative bg-gray-950">
+        <div className="flex-1 relative bg-zinc-950">
           <ModelViewerWrapper
             src={modelUrl}
             ar={false}
@@ -151,14 +153,14 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
         </div>
 
         {/* Sidebar Controller */}
-        <aside className="w-80 bg-gray-900 border-l border-gray-800 p-5 flex flex-col justify-between z-10">
+        <aside className="w-80 bg-zinc-900 border-l border-zinc-800 p-5 flex flex-col justify-between z-10">
           <div className="space-y-4">
             {/* Sidebar Tabs */}
-            <div className="grid grid-cols-3 gap-1 bg-gray-950 p-1 rounded-xl border border-gray-800 text-xs font-medium">
+            <div className="grid grid-cols-3 gap-1 bg-zinc-950 p-1 rounded-xl border border-zinc-800 text-xs font-medium">
               <button
                 onClick={() => setActiveTab('share')}
                 className={`py-2 rounded-lg transition-colors ${
-                  activeTab === 'share' ? 'bg-blue-600 text-white font-semibold' : 'text-gray-400 hover:text-white'
+                  activeTab === 'share' ? 'bg-white text-zinc-950 font-semibold' : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 Join QR
@@ -166,7 +168,7 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
               <button
                 onClick={() => setActiveTab('participants')}
                 className={`py-2 rounded-lg transition-colors flex items-center justify-center gap-1 ${
-                  activeTab === 'participants' ? 'bg-blue-600 text-white font-semibold' : 'text-gray-400 hover:text-white'
+                  activeTab === 'participants' ? 'bg-white text-zinc-950 font-semibold' : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 Viewers ({viewerCount})
@@ -174,7 +176,7 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
               <button
                 onClick={() => setActiveTab('hotspots')}
                 className={`py-2 rounded-lg transition-colors flex items-center justify-center gap-1 ${
-                  activeTab === 'hotspots' ? 'bg-blue-600 text-white font-semibold' : 'text-gray-400 hover:text-white'
+                  activeTab === 'hotspots' ? 'bg-white text-zinc-950 font-semibold' : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 Parts ({hotspots.length})
@@ -183,15 +185,15 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
 
             {/* Tab Contents */}
             {activeTab === 'share' && (
-              <div className="bg-gray-950 border border-gray-800 rounded-xl p-4 text-center">
-                <p className="text-xs text-gray-400 mb-3 font-medium">Scan QR Code on Mobile to Join AR</p>
+              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 text-center">
+                <p className="text-xs text-zinc-400 mb-3 font-medium">Scan QR Code on Mobile to Join AR</p>
                 <QRCodeDisplay sessionId={sessionId} />
               </div>
             )}
 
             {activeTab === 'participants' && (
-              <div className="bg-gray-950 border border-gray-800 rounded-xl p-4 text-xs space-y-2">
-                <div className="flex items-center justify-between text-gray-400">
+              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 text-xs space-y-2">
+                <div className="flex items-center justify-between text-zinc-400">
                   <span>Connected Viewers</span>
                   <span className="font-bold text-white text-sm">{viewerCount}</span>
                 </div>
@@ -201,7 +203,7 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
             {activeTab === 'hotspots' && (
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
                 {hotspots.length === 0 ? (
-                  <div className="text-center py-6 text-xs text-gray-500">
+                  <div className="text-center py-6 text-xs text-zinc-500">
                     No annotations for this model.
                   </div>
                 ) : (
@@ -211,12 +213,12 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
                       onClick={() => handleHotspotSelect(hotspot)}
                       className={`w-full text-left p-3 rounded-xl border transition-all text-xs cursor-pointer ${
                         selectedHotspot?.id === hotspot.id
-                          ? 'bg-emerald-500/10 border-emerald-500/40 text-white'
-                          : 'bg-gray-950 border-gray-800 text-gray-300 hover:border-gray-700'
+                          ? 'bg-white/10 border-white/40 text-white'
+                          : 'bg-zinc-950 border-zinc-800 text-zinc-300 hover:border-zinc-700'
                       }`}
                     >
-                      <span className="font-semibold block mb-0.5">{hotspot.label}</span>
-                      <p className="text-gray-500 text-[11px] leading-snug line-clamp-2">{hotspot.description}</p>
+                      <span className="font-semibold block mb-0.5 text-white">{hotspot.label}</span>
+                      <p className="text-zinc-500 text-[11px] leading-snug line-clamp-2">{hotspot.description}</p>
                     </button>
                   ))
                 )}
@@ -225,12 +227,14 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
           </div>
 
           {/* End Session Button */}
-          <button
+          <Button
             onClick={() => router.push(`/dashboard?sessionId=${sessionId}`)}
-            className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-semibold text-xs transition-colors cursor-pointer"
+            variant="destructive"
+            size="lg"
+            className="w-full mt-4"
           >
             End Session
-          </button>
+          </Button>
         </aside>
       </div>
     </div>

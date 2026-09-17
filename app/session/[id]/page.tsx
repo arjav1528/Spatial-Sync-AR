@@ -18,7 +18,7 @@ export default async function SessionPage({ params, searchParams }: SessionPageP
   const isViewerRole = role === 'viewer' || (isMobile && role !== 'host');
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen bg-zinc-950 text-white">
       {isViewerRole ? (
         <MobileViewer sessionId={id} />
       ) : (

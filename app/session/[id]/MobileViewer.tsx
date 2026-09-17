@@ -5,6 +5,7 @@ import ModelViewerWrapper from '@/components/ModelViewerWrapper';
 import HotspotMarker, { Hotspot } from '@/components/HotspotMarker';
 import { useSpatialSync } from '@/lib/hooks/useSpatialSync';
 import { getS3PublicUrl } from '@/lib/aws-config';
+import { Button } from '@/components/ui/button';
 
 interface MobileViewerProps {
   sessionId: string;
@@ -64,7 +65,6 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
         if (!url) return;
 
         if (url.toLowerCase().endsWith('.usdz')) {
-          // USDZ-only upload: use demo GLB for 3D preview, USDZ for iOS QuickLook
           setIosSrc(url);
         } else {
           setModelUrl(url);
@@ -191,7 +191,6 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
         }
       }
 
-      // Fallback for iOS Chrome / iOS browsers where canActivateAR might evaluate false
       if (isIOS) {
         try {
           if (typeof modelViewerEl.activateAR === 'function') {
@@ -203,7 +202,6 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
         return;
       }
 
-      // Show help modal on desktop OS without camera hardware
       const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
       if (!isMobileDevice) {
         e.preventDefault();
@@ -221,7 +219,7 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
   };
 
   return (
-    <div className="h-screen relative bg-gray-950 text-white select-none overflow-hidden">
+    <div className="h-screen relative bg-zinc-950 text-white select-none overflow-hidden">
       <ModelViewerWrapper
         src={modelUrl}
         iosSrc={iosSrc}
@@ -234,13 +232,13 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
         <button
           slot="ar-button"
           onClick={handleArClick}
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-xs bg-blue-600 hover:bg-blue-700 active:scale-95 text-white py-3.5 px-6 rounded-full font-semibold text-base shadow-xl shadow-blue-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer z-20 border-none outline-none"
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-xs bg-white text-zinc-950 hover:bg-zinc-200 active:scale-95 py-3.5 px-6 rounded-full font-bold text-base shadow-2xl transition-all flex items-center justify-center gap-2 cursor-pointer z-20 border-none outline-none"
           style={{ display: 'flex' }}
         >
           <span>🛋️</span> View in My Room
         </button>
 
-        {/* Hotspot pins — rendered as WebXR DOM overlay in AR mode */}
+        {/* Hotspot pins */}
         {hotspots.map((hotspot) => (
           <HotspotMarker
             key={hotspot.id}
@@ -253,21 +251,21 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
 
       {/* Top Mobile Status Header */}
       <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10 pointer-events-none">
-        <div className="flex items-center gap-2 bg-gray-900/90 backdrop-blur px-3.5 py-1.5 rounded-full border border-gray-800 shadow-xl">
-          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+        <div className="flex items-center gap-2 bg-zinc-900/90 backdrop-blur px-3.5 py-1.5 rounded-full border border-zinc-800 shadow-xl">
+          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-white animate-pulse' : 'bg-zinc-600'}`} />
           <span className="text-xs font-medium text-white">{isConnected ? 'Host Synced' : 'Connecting...'}</span>
-          <span className="text-[10px] font-mono text-gray-400 border-l border-gray-700 pl-2">#{sessionId}</span>
+          <span className="text-[10px] font-mono text-zinc-400 border-l border-zinc-700 pl-2">#{sessionId}</span>
         </div>
 
-        <div className="bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[10px] font-mono px-2.5 py-1 rounded-full font-semibold">
+        <div className="bg-zinc-800 text-white border border-zinc-700 text-[10px] font-mono px-2.5 py-1 rounded-full font-semibold">
           WebXR Active
         </div>
       </div>
 
-      {/* Camera Sync Telemetry Pill — hidden while AR is active */}
+      {/* Camera Sync Telemetry Pill */}
       {arStatus === 'inactive' && (
-        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-gray-900/80 backdrop-blur px-4 py-1.5 rounded-full border border-gray-800 text-[11px] font-mono text-gray-300 flex items-center gap-2 pointer-events-none z-10">
-          <span className="text-blue-400">🔄</span>
+        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-zinc-900/80 backdrop-blur px-4 py-1.5 rounded-full border border-zinc-800 text-[11px] font-mono text-zinc-300 flex items-center gap-2 pointer-events-none z-10">
+          <span className="text-white">🔄</span>
           <span>Orbit: <span className="text-white font-bold">{displayOrbit}</span></span>
         </div>
       )}
@@ -279,40 +277,40 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
-                className="w-2 h-2 rounded-full bg-blue-400 animate-bounce"
+                className="w-2 h-2 rounded-full bg-white animate-bounce"
                 style={{ animationDelay: `${i * 0.15}s` }}
               />
             ))}
           </div>
-          <div className="bg-gray-900/90 backdrop-blur px-5 py-2 rounded-full border border-blue-500/30 text-sm font-medium text-blue-300">
+          <div className="bg-zinc-900/90 backdrop-blur px-5 py-2 rounded-full border border-zinc-700 text-sm font-medium text-white">
             Scanning for floor surface...
           </div>
         </div>
       )}
 
-      {/* Gesture Hints Overlay — shown briefly after placement */}
+      {/* Gesture Hints Overlay */}
       {showGestureHints && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10 animate-fade-in">
-          <div className="bg-gray-900/90 backdrop-blur-md border border-gray-700 rounded-2xl px-6 py-4 text-center space-y-2 shadow-2xl">
-            <p className="text-xs font-semibold text-emerald-400 uppercase tracking-widest">Object Placed</p>
-            <div className="flex gap-4 text-xs text-gray-300">
+          <div className="bg-zinc-900/90 backdrop-blur-md border border-zinc-700 rounded-2xl px-6 py-4 text-center space-y-2 shadow-2xl">
+            <p className="text-xs font-semibold text-white uppercase tracking-widest">Object Placed</p>
+            <div className="flex gap-4 text-xs text-zinc-300">
               <span>Pinch to resize</span>
-              <span className="text-gray-600">·</span>
+              <span className="text-zinc-600">·</span>
               <span>Drag to move</span>
-              <span className="text-gray-600">·</span>
+              <span className="text-zinc-600">·</span>
               <span>Twist to rotate</span>
             </div>
           </div>
         </div>
       )}
 
-      {/* AR Hotspot Annotation Card — tapping a pin shows this */}
+      {/* AR Hotspot Annotation Card */}
       {selectedHotspot && (
         <div className="absolute top-20 left-4 right-4 z-30 pointer-events-auto animate-fade-in">
-          <div className="bg-gray-950/95 backdrop-blur-md border border-blue-500/30 rounded-2xl p-5 shadow-2xl">
+          <div className="bg-zinc-950/95 backdrop-blur-md border border-zinc-800 rounded-2xl p-5 shadow-2xl">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <p className="text-[10px] font-semibold text-blue-400 uppercase tracking-widest mb-1">
+                <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-1">
                   {selectedHotspot.label}
                 </p>
                 <h3 className="text-base font-bold text-white leading-snug">
@@ -321,20 +319,20 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
               </div>
               <button
                 onClick={() => setSelectedHotspot(null)}
-                className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors text-lg leading-none"
+                className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors text-lg leading-none"
                 aria-label="Close annotation"
               >
                 ×
               </button>
             </div>
-            <p className="text-sm text-gray-300 leading-relaxed mb-4">
+            <p className="text-sm text-zinc-300 leading-relaxed mb-4">
               {selectedHotspot.description}
             </p>
             {Object.keys(selectedHotspot.specs).length > 0 && (
-              <div className="border-t border-gray-800 pt-3 grid grid-cols-2 gap-x-4 gap-y-2">
+              <div className="border-t border-zinc-800 pt-3 grid grid-cols-2 gap-x-4 gap-y-2">
                 {(Object.entries(selectedHotspot.specs) as [string, string][]).map(([k, v]) => (
                   <div key={k}>
-                    <p className="text-[10px] text-gray-500 uppercase tracking-wide">{k}</p>
+                    <p className="text-[10px] text-zinc-500 uppercase tracking-wide">{k}</p>
                     <p className="text-xs font-semibold text-white">{v}</p>
                   </div>
                 ))}
@@ -344,24 +342,24 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
         </div>
       )}
 
-      {/* iOS Pre-AR Hotspot Info — QuickLook can't render DOM overlays so list hotspots before launch */}
+      {/* iOS Pre-AR Hotspot Info */}
       {isIosDevice && hotspots.length > 0 && arStatus === 'inactive' && !selectedHotspot && (
         <div className="absolute bottom-24 left-4 right-4 z-10 pointer-events-none">
-          <div className="bg-gray-900/85 backdrop-blur border border-gray-700/60 rounded-xl px-4 py-3">
-            <p className="text-[10px] font-semibold text-amber-400 uppercase tracking-widest mb-2">
+          <div className="bg-zinc-900/85 backdrop-blur border border-zinc-700/60 rounded-xl px-4 py-3">
+            <p className="text-[10px] font-semibold text-zinc-300 uppercase tracking-widest mb-2">
               📌 Component Annotations
             </p>
             <div className="flex flex-wrap gap-2">
               {hotspots.map((h) => (
                 <span
                   key={h.id}
-                  className="text-[10px] font-medium text-gray-300 bg-gray-800 border border-gray-700 rounded-full px-2.5 py-0.5"
+                  className="text-[10px] font-medium text-zinc-300 bg-zinc-800 border border-zinc-700 rounded-full px-2.5 py-0.5"
                 >
                   {h.label}
                 </span>
               ))}
             </div>
-            <p className="text-[10px] text-gray-500 mt-2">Tap pins in 3D view to explore. iOS AR QuickLook shows the model only.</p>
+            <p className="text-[10px] text-zinc-500 mt-2">Tap pins in 3D view to explore. iOS AR QuickLook shows the model only.</p>
           </div>
         </div>
       )}
@@ -369,28 +367,29 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
       {/* AR Device Help Modal for Desktop */}
       {showArModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
-            <div className="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center text-2xl mx-auto border border-blue-500/30">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
+            <div className="w-12 h-12 bg-zinc-800 text-white rounded-full flex items-center justify-center text-2xl mx-auto border border-zinc-700">
               📱
             </div>
             <div>
               <h3 className="text-lg font-bold text-white mb-1">Open on Your Phone</h3>
-              <p className="text-xs text-gray-400 leading-relaxed">
+              <p className="text-xs text-zinc-400 leading-relaxed">
                 AR requires a smartphone camera (iOS ARKit or Android ARCore). Open this session on your phone to place the product in your room.
               </p>
             </div>
-            <div className="bg-gray-950 p-3 rounded-xl border border-gray-800 text-left text-xs text-gray-300 space-y-1 font-mono">
-              <p className="text-blue-400 font-semibold font-sans">How to view in AR:</p>
+            <div className="bg-zinc-950 p-3 rounded-xl border border-zinc-800 text-left text-xs text-zinc-300 space-y-1 font-mono">
+              <p className="text-white font-semibold font-sans">How to view in AR:</p>
               <p>1. Open this link on your smartphone</p>
               <p>2. Tap "View in My Room"</p>
               <p>3. Point camera at floor — object appears</p>
             </div>
-            <button
+            <Button
               onClick={() => setShowArModal(false)}
-              className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-2.5 rounded-xl text-xs transition-colors"
+              variant="default"
+              className="w-full text-xs"
             >
               Got it, continue in 3D Mode
-            </button>
+            </Button>
           </div>
         </div>
       )}
