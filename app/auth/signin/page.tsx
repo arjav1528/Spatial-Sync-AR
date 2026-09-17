@@ -3,6 +3,10 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Briefcase, KeyRound, Mail } from 'lucide-react';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -32,57 +36,64 @@ export default function SignInPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center p-6">
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-8 w-full max-w-md shadow-2xl">
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center text-2xl mx-auto mb-3 border border-blue-500/30">
-            💼
+      <Card className="w-full max-w-md shadow-2xl border-gray-800 bg-gray-900/90 backdrop-blur">
+        <CardHeader className="text-center pb-4">
+          <div className="w-12 h-12 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center text-xl mx-auto mb-3 border border-blue-500/30">
+            <Briefcase className="w-6 h-6 text-blue-400" />
           </div>
-          <h1 className="text-2xl font-bold text-white">Sales Rep Sign In</h1>
-          <p className="text-sm text-gray-400 mt-1">Sign in as Sales Rep to upload assets & start sessions</p>
-        </div>
+          <CardTitle className="text-2xl">Sales Rep Sign In</CardTitle>
+          <CardDescription>Sign in to launch sessions & view buyer analytics</CardDescription>
+        </CardHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm text-gray-400 mb-1 font-medium">Rep Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="rep@spatialsync.io"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
-              required
-            />
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-gray-400 flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5 text-blue-400" />
+                Rep Email
+              </label>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="rep@spatialsync.io"
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-gray-400 flex items-center gap-1.5">
+                <KeyRound className="w-3.5 h-3.5 text-blue-400" />
+                Password
+              </label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            {error && <p className="text-red-400 text-xs font-medium">{error}</p>}
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full"
+              size="lg"
+            >
+              {loading ? 'Signing in...' : 'Sign In as Rep'}
+            </Button>
+          </form>
+
+          <div className="mt-6 p-3.5 bg-gray-950/60 rounded-lg border border-gray-800 text-xs space-y-1">
+            <p className="font-semibold text-gray-400 mb-1">Demo Credentials:</p>
+            <p className="font-mono text-gray-400">Email: <span className="text-blue-400 font-semibold">rep@spatialsync.io</span></p>
+            <p className="font-mono text-gray-400">Password: <span className="text-blue-400 font-semibold">demo123</span></p>
           </div>
-          <div>
-            <label className="block text-sm text-gray-400 mb-1 font-medium">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
-              required
-            />
-          </div>
-
-          {error && <p className="text-red-400 text-sm">{error}</p>}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors disabled:opacity-50 text-sm shadow-lg shadow-blue-600/20"
-          >
-            {loading ? 'Signing in...' : 'Sign In as Rep'}
-          </button>
-        </form>
-
-        <div className="mt-6 p-4 bg-gray-950/60 rounded-lg border border-gray-800/80">
-          <p className="text-xs text-gray-400 font-semibold mb-1">Demo Credentials:</p>
-          <p className="text-xs font-mono text-gray-400">Email: <span className="text-blue-400">rep@spatialsync.io</span></p>
-          <p className="text-xs font-mono text-gray-400">Password: <span className="text-blue-400">demo123</span></p>
-          <p className="text-[11px] text-gray-500 mt-2">Viewers scan QR code directly — no sign-in required!</p>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

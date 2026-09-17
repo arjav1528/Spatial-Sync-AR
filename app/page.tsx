@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import { Button } from '@/components/ui/button';
+import { LogIn } from 'lucide-react';
 
 export default function HomePage() {
   const { data: session, status } = useSession();
@@ -28,14 +30,12 @@ export default function HomePage() {
           Real-time multi-device spatial 3D product pitches & buyer gaze analytics.
         </p>
 
-        <div>
-          <Link
-            href="/auth/signin"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 rounded-xl text-base transition-all shadow-lg shadow-blue-600/25 inline-flex items-center gap-2 cursor-pointer"
-          >
-            <span>💼</span> Sales Rep Login
+        <Button asChild size="lg" className="gap-2">
+          <Link href="/auth/signin">
+            <LogIn className="w-4 h-4" />
+            Sales Rep Login
           </Link>
-        </div>
+        </Button>
       </main>
     </div>
   );

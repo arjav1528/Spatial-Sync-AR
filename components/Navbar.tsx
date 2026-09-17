@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { useSession, signOut, signIn } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
+import { LogOut, LogIn } from 'lucide-react';
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -14,19 +16,25 @@ export default function Navbar() {
 
       <div>
         {session ? (
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => signOut({ callbackUrl: '/auth/signin' })}
-            className="bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white text-xs px-4 py-2 rounded-lg border border-gray-800 transition-colors font-medium cursor-pointer"
+            className="gap-2"
           >
+            <LogOut className="w-3.5 h-3.5" />
             Sign Out
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
+            variant="default"
+            size="sm"
             onClick={() => signIn()}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer"
+            className="gap-2"
           >
+            <LogIn className="w-3.5 h-3.5" />
             Rep Sign In
-          </button>
+          </Button>
         )}
       </div>
     </header>
