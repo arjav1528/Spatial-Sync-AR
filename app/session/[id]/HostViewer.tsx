@@ -14,7 +14,7 @@ interface HostViewerProps {
 
 export default function HostViewer({ sessionId }: HostViewerProps) {
   const router = useRouter();
-  const [modelUrl, setModelUrl] = useState('/models/demo.glb');
+  const [modelUrl, setModelUrl] = useState('');
   const [currentOrbit, setCurrentOrbit] = useState('0deg 75deg 2.5m');
   const [activeTab, setActiveTab] = useState<'share' | 'participants' | 'asset' | 'hotspots'>('share');
   const [autoRotate, setAutoRotate] = useState(false);

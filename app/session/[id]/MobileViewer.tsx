@@ -23,7 +23,7 @@ function parseOrbit(orbit: string): { theta: number; phi: number; radius: number
 type ArStatus = 'inactive' | 'scanning' | 'placed' | 'failed';
 
 export default function MobileViewer({ sessionId }: MobileViewerProps) {
-  const [modelUrl, setModelUrl] = useState('/models/demo.glb');
+  const [modelUrl, setModelUrl] = useState('');
   const [iosSrc, setIosSrc] = useState<string | undefined>(undefined);
   const [displayOrbit, setDisplayOrbit] = useState('0deg 75deg 2.5m');
   const [showArModal, setShowArModal] = useState(false);

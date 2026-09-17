@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PutCommand, GetCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { docClient, TABLE_NAME, getS3AssetUrl } from '@/lib/aws-config';
+import { docClient, TABLE_NAME, getS3AssetUrl, DEFAULT_ASSET_KEY } from '@/lib/aws-config';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: NextRequest) {
   try {
     const { assetKey, hostName } = await request.json();
     const sessionId = uuidv4().slice(0, 6).toUpperCase();
+    const targetAssetKey = assetKey || DEFAULT_ASSET_KEY;
 
     await docClient.send(new PutCommand({
       TableName: TABLE_NAME,
@@ -14,14 +15,14 @@ export async function POST(request: NextRequest) {
         PK: `SESSION#${sessionId}`,
         SK: 'META',
         sessionId,
-        assetKey,
-        hostName: hostName || 'Host',
+        assetKey: targetAssetKey,
+        hostName: hostName || 'Sales Rep',
         createdAt: new Date().toISOString(),
         status: 'active',
       },
     }));
 
-    return NextResponse.json({ sessionId });
+    return NextResponse.json({ sessionId, assetKey: targetAssetKey });
   } catch (error) {
     console.error('Session creation error:', error);
     return NextResponse.json({ error: 'Failed to create session' }, { status: 500 });
@@ -60,10 +61,8 @@ export async function GET(request: NextRequest) {
       Select: 'COUNT',
     }));
 
-    let assetUrl = '/models/demo.glb';
-    if (meta.Item?.assetKey) {
-      assetUrl = await getS3AssetUrl(meta.Item.assetKey);
-    }
+    const assetKey = meta.Item?.assetKey || DEFAULT_ASSET_KEY;
+    const assetUrl = await getS3AssetUrl(assetKey);
 
     return NextResponse.json({
       session: meta.Item ? { ...meta.Item, assetUrl } : null,

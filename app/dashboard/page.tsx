@@ -20,7 +20,7 @@ export default function DashboardPage() {
   const [vectors, setVectors] = useState<AnalyticsVector[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
-  const [modelUrl, setModelUrl] = useState('/models/demo.glb');
+  const [modelUrl, setModelUrl] = useState('');
 
   const fetchAnalytics = async () => {
     if (!sessionId.trim()) return;

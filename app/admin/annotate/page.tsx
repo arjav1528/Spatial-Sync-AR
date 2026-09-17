@@ -43,9 +43,22 @@ function AnnotatePageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const assetKey = searchParams.get('assetKey') || 'models/demo.glb';
-  const assetUrl = searchParams.get('assetUrl') || '/models/demo.glb';
-  const modelId = assetKey.split('/').pop()?.replace(/\.[^.]+$/, '') || 'demo';
+  const assetKey = searchParams.get('assetKey') || 'assets/HospitalBed.glb';
+  const paramAssetUrl = searchParams.get('assetUrl');
+  const modelId = assetKey.split('/').pop()?.replace(/\.[^.]+$/, '') || 'HospitalBed';
+  const [resolvedModelUrl, setResolvedModelUrl] = useState<string>(paramAssetUrl || '');
+
+  useEffect(() => {
+    if (!paramAssetUrl && assetKey) {
+      fetch('/api/models')
+        .then(r => r.json())
+        .then(data => {
+          const matched = (data.models || []).find((m: { key: string; presignedUrl: string }) => m.key === assetKey);
+          if (matched?.presignedUrl) setResolvedModelUrl(matched.presignedUrl);
+        })
+        .catch(() => {});
+    }
+  }, [assetKey, paramAssetUrl]);
 
   const [hotspots, setHotspots] = useState<StoredHotspot[]>([]);
   const [selectedHotspot, setSelectedHotspot] = useState<StoredHotspot | null>(null);
@@ -232,7 +245,7 @@ function AnnotatePageInner() {
         {/* 3D Viewport */}
         <div className="flex-1 relative bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950">
           <ModelViewerWrapper
-            src={assetUrl}
+            src={resolvedModelUrl}
             ar={false}
             cameraOrbit={cameraOrbit}
             cameraTarget={cameraTarget}
