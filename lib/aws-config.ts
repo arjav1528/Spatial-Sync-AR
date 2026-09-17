@@ -45,6 +45,13 @@ export const PREUPLOADED_MODELS = [
     icon: '🏢',
   },
   {
+    name: 'Industrial Drilling Machine',
+    key: 'assets/drilling.glb',
+    category: 'Industrial & Heavy Equipment',
+    description: 'Precision industrial vertical drill press machining equipment.',
+    icon: '⚙️',
+  },
+  {
     name: 'Executive Lounge Sofa',
     key: 'assets/demo.glb',
     category: 'Commercial Furniture',
