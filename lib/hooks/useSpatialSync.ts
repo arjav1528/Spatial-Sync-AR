@@ -4,22 +4,21 @@ import { useEffect } from 'react';
 import { useSpatialStore } from '@/lib/socket-store';
 
 export function useSpatialSync(sessionId: string, token: string) {
-  const {
-    connect,
-    disconnect,
-    isConnected,
-    connectionStatus,
-    cameraOrbit,
-    laserCursor,
-    selectedHotspotId,
-    viewers,
-    sendCameraUpdate,
-    sendCursorUpdate,
-    sendHotspotUpdate,
-    setCameraOrbit,
-  } = useSpatialStore();
+  const connect = useSpatialStore((state) => state.connect);
+  const disconnect = useSpatialStore((state) => state.disconnect);
+  const isConnected = useSpatialStore((state) => state.isConnected);
+  const connectionStatus = useSpatialStore((state) => state.connectionStatus);
+  const cameraOrbit = useSpatialStore((state) => state.cameraOrbit);
+  const laserCursor = useSpatialStore((state) => state.laserCursor);
+  const selectedHotspotId = useSpatialStore((state) => state.selectedHotspotId);
+  const viewers = useSpatialStore((state) => state.viewers);
+  const sendCameraUpdate = useSpatialStore((state) => state.sendCameraUpdate);
+  const sendCursorUpdate = useSpatialStore((state) => state.sendCursorUpdate);
+  const sendHotspotUpdate = useSpatialStore((state) => state.sendHotspotUpdate);
+  const setCameraOrbit = useSpatialStore((state) => state.setCameraOrbit);
 
   useEffect(() => {
+    if (!sessionId) return;
     connect(sessionId, token);
 
     // Fetch initial / current state on connect (handles reconnect state snap)

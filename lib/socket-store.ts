@@ -26,6 +26,9 @@ interface SpatialState {
 }
 
 const THROTTLE_MS = 66; // ~15fps max send rate
+const DEFAULT_WS_URL = 'wss://8t20x6jssb.execute-api.eu-central-1.amazonaws.com/dev';
+
+let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
 export const useSpatialStore = create<SpatialState>((set, get) => ({
   socket: null,
@@ -39,12 +42,7 @@ export const useSpatialStore = create<SpatialState>((set, get) => ({
   lastSendTime: 0,
 
   connect: (sessionId: string, token: string) => {
-    const wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
-    if (!wsUrl) {
-      console.error('WebSocket URL not configured');
-      set({ connectionStatus: 'error' });
-      return;
-    }
+    const wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || DEFAULT_WS_URL;
 
     // Don't re-connect if already connected to same session
     const { socket, sessionId: currentSession } = get();
@@ -56,75 +54,99 @@ export const useSpatialStore = create<SpatialState>((set, get) => ({
       socket.close();
     }
 
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
+
     set({ connectionStatus: 'connecting', sessionId });
-    const ws = new WebSocket(`${wsUrl}?sessionId=${sessionId}&token=${token}`);
 
-    ws.onopen = () => {
-      set({ socket: ws, isConnected: true, connectionStatus: 'connected' });
-    };
+    try {
+      const ws = new WebSocket(`${wsUrl}?sessionId=${sessionId}&token=${token}`);
 
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
+      ws.onopen = () => {
+        set({ socket: ws, isConnected: true, connectionStatus: 'connected' });
+      };
 
-        if (data.action === 'SYNC_CAMERA' && data.data?.cameraOrbit) {
-          const rawPayload: string = data.data.cameraOrbit;
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
 
-          // Extract camera orbit string (e.g. "0deg 75deg 2.5m")
-          const orbitPart = rawPayload.split('|')[0];
-          if (orbitPart) {
-            set({ cameraOrbit: orbitPart });
+          if (data.action === 'SYNC_CAMERA' && data.data?.cameraOrbit) {
+            const rawPayload: string = data.data.cameraOrbit;
+
+            // Extract camera orbit string (e.g. "0deg 75deg 2.5m")
+            const orbitPart = rawPayload.split('|')[0];
+            if (orbitPart) {
+              set({ cameraOrbit: orbitPart });
+            }
+
+            // Extract laser cursor if encoded in payload
+            const laserMatch = rawPayload.match(/\|LASER:([^|]+)\|([^|]+)/);
+            if (laserMatch) {
+              set({
+                laserCursor: {
+                  position: laserMatch[1],
+                  normal: laserMatch[2],
+                  active: true,
+                },
+              });
+            } else if (rawPayload.includes('|NOLASER')) {
+              set({ laserCursor: null });
+            }
+
+            // Extract hotspot selection if encoded in payload
+            const hotspotMatch = rawPayload.match(/\|HOTSPOT:([^|]+)/);
+            if (hotspotMatch) {
+              set({ selectedHotspotId: hotspotMatch[1] });
+            } else if (rawPayload.includes('|NOHOTSPOT')) {
+              set({ selectedHotspotId: null });
+            }
           }
 
-          // Extract laser cursor if encoded in payload
-          const laserMatch = rawPayload.match(/\|LASER:([^|]+)\|([^|]+)/);
-          if (laserMatch) {
-            set({
-              laserCursor: {
-                position: laserMatch[1],
-                normal: laserMatch[2],
-                active: true,
-              },
-            });
-          } else if (rawPayload.includes('|NOLASER')) {
-            set({ laserCursor: null });
+          if (data.action === 'SYNC_CURSOR') {
+            set({ laserCursor: data.data });
           }
 
-          // Extract hotspot selection if encoded in payload
-          const hotspotMatch = rawPayload.match(/\|HOTSPOT:([^|]+)/);
-          if (hotspotMatch) {
-            set({ selectedHotspotId: hotspotMatch[1] });
-          } else if (rawPayload.includes('|NOHOTSPOT')) {
-            set({ selectedHotspotId: null });
+          if (data.action === 'SYNC_HOTSPOT') {
+            set({ selectedHotspotId: data.data?.hotspotId ?? null });
           }
+
+          if (data.action === 'VIEWER_UPDATE' && data.viewers) {
+            set({ viewers: data.viewers });
+          }
+        } catch (err) {
+          console.error('WebSocket message parse error:', err);
         }
+      };
 
-        if (data.action === 'SYNC_CURSOR') {
-          set({ laserCursor: data.data });
-        }
+      ws.onclose = () => {
+        set({ socket: null, isConnected: false, connectionStatus: 'disconnected' });
+        // Auto-reconnect after 3 seconds if session is active
+        if (reconnectTimer) clearTimeout(reconnectTimer);
+        reconnectTimer = setTimeout(() => {
+          const { sessionId: activeSession } = get();
+          if (activeSession) {
+            get().connect(activeSession, token);
+          }
+        }, 3000);
+      };
 
-        if (data.action === 'SYNC_HOTSPOT') {
-          set({ selectedHotspotId: data.data?.hotspotId ?? null });
-        }
-
-        if (data.action === 'VIEWER_UPDATE' && data.viewers) {
-          set({ viewers: data.viewers });
-        }
-      } catch (err) {
-        console.error('WebSocket message parse error:', err);
-      }
-    };
-
-    ws.onclose = () => {
-      set({ socket: null, isConnected: false, connectionStatus: 'disconnected' });
-    };
-
-    ws.onerror = () => {
+      ws.onerror = (err) => {
+        console.error('WebSocket connection error:', err);
+        set({ connectionStatus: 'error' });
+      };
+    } catch (err) {
+      console.error('Failed to instantiate WebSocket:', err);
       set({ connectionStatus: 'error' });
-    };
+    }
   },
 
   disconnect: () => {
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
     const { socket } = get();
     if (socket) {
       socket.close();
@@ -160,7 +182,6 @@ export const useSpatialStore = create<SpatialState>((set, get) => ({
     const hotspotPart = selectedHotspotId ? `|HOTSPOT:${selectedHotspotId}` : '|NOHOTSPOT';
     const fullPayload = `${cameraOrbit.split('|')[0]}${laserPart}${hotspotPart}`;
 
-    // Send encoded payload over SYNC_CAMERA so AWS Lambda broadcasts it 100% reliably
     socket.send(JSON.stringify({
       action: 'SYNC_CAMERA',
       sessionId: sessionId,
