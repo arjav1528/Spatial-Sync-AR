@@ -49,7 +49,7 @@ function DashboardContent() {
         } else if (sessionData.session?.assetKey) {
           setModelUrl(
             `https://${process.env.NEXT_PUBLIC_S3_BUCKET || ''}.s3.${
-              process.env.NEXT_PUBLIC_AWS_REGION || 'eu-central-1'
+              process.env.NEXT_PUBLIC_AWS_REGION || 'ap-south-1'
             }.amazonaws.com/${sessionData.session.assetKey}`
           );
         }
@@ -87,7 +87,7 @@ function DashboardContent() {
     <main className="max-w-5xl mx-auto px-6 py-8 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-          <BarChart2 className="w-6 h-6 text-blue-500" />
+          <BarChart2 className="w-6 h-6 text-white" />
           Analytics
         </h1>
       </div>
@@ -104,6 +104,7 @@ function DashboardContent() {
         <Button
           onClick={handleManualFetch}
           disabled={loading}
+          variant="default"
           className="gap-2"
         >
           <Search className="w-3.5 h-3.5" />
@@ -113,37 +114,37 @@ function DashboardContent() {
 
       {/* Metrics Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-gray-800 bg-gray-900/90 p-5">
+        <Card className="border-zinc-800 bg-zinc-900/90 p-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center text-blue-400 border border-blue-500/30">
-              <Eye className="w-5 h-5" />
+            <div className="w-10 h-10 bg-zinc-800 rounded-lg flex items-center justify-center text-white border border-zinc-700">
+              <Eye className="w-5 h-5 text-white" />
             </div>
             <div>
-              <p className="text-gray-400 text-xs font-medium">Total Gaze Points</p>
+              <p className="text-zinc-400 text-xs font-medium">Total Gaze Points</p>
               <p className="text-2xl font-bold text-white mt-0.5">{vectors.length}</p>
             </div>
           </div>
         </Card>
 
-        <Card className="border-gray-800 bg-gray-900/90 p-5">
+        <Card className="border-zinc-800 bg-zinc-900/90 p-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-emerald-600/20 rounded-lg flex items-center justify-center text-emerald-400 border border-emerald-500/30">
-              <Gauge className="w-5 h-5" />
+            <div className="w-10 h-10 bg-zinc-800 rounded-lg flex items-center justify-center text-white border border-zinc-700">
+              <Gauge className="w-5 h-5 text-white" />
             </div>
             <div>
-              <p className="text-gray-400 text-xs font-medium">Avg. Buyer Proximity</p>
+              <p className="text-zinc-400 text-xs font-medium">Avg. Buyer Proximity</p>
               <p className="text-2xl font-bold text-white mt-0.5">{avgProximity}m</p>
             </div>
           </div>
         </Card>
 
-        <Card className="border-gray-800 bg-gray-900/90 p-5">
+        <Card className="border-zinc-800 bg-zinc-900/90 p-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-600/20 rounded-lg flex items-center justify-center text-purple-400 border border-purple-500/30">
-              <Clock className="w-5 h-5" />
+            <div className="w-10 h-10 bg-zinc-800 rounded-lg flex items-center justify-center text-white border border-zinc-700">
+              <Clock className="w-5 h-5 text-white" />
             </div>
             <div>
-              <p className="text-gray-400 text-xs font-medium">Session Duration</p>
+              <p className="text-zinc-400 text-xs font-medium">Session Duration</p>
               <p className="text-2xl font-bold text-white mt-0.5">{sessionDuration}s</p>
             </div>
           </div>
@@ -152,19 +153,19 @@ function DashboardContent() {
 
       {/* Empty State */}
       {hasLoaded && vectors.length === 0 && (
-        <Card className="border-gray-800 bg-gray-900/60 p-6 text-center text-xs text-gray-400">
+        <Card className="border-zinc-800 bg-zinc-900/60 p-6 text-center text-xs text-zinc-400">
           No gaze data found for session <span className="font-mono text-white">"{sessionId}"</span>.
         </Card>
       )}
 
       {/* 3D Heatmap Section */}
       {vectors.length > 0 && (
-        <Card className="border-gray-800 bg-gray-900/90 p-5 space-y-4">
+        <Card className="border-zinc-800 bg-zinc-900/90 p-5 space-y-4">
           <CardHeader className="p-0">
             <CardTitle className="text-base font-bold text-white">3D Engagement Heatmap</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="aspect-video bg-gray-950 rounded-lg overflow-hidden relative border border-gray-800">
+            <div className="aspect-video bg-zinc-950 rounded-lg overflow-hidden relative border border-zinc-800">
               <ModelViewerWrapper src={modelUrl} ar={false} interactive={true} />
               <HeatmapOverlay gazeData={vectors} />
             </div>
@@ -177,9 +178,9 @@ function DashboardContent() {
 
 export default function DashboardPage() {
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen bg-zinc-950 text-white">
       <Navbar />
-      <Suspense fallback={<div className="p-8 text-center text-xs text-gray-400">Loading Analytics...</div>}>
+      <Suspense fallback={<div className="p-8 text-center text-xs text-zinc-400">Loading Analytics...</div>}>
         <DashboardContent />
       </Suspense>
     </div>
