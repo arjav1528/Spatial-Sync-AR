@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { UploadCloud } from 'lucide-react';
 
 interface FileDropzoneProps {
   onUploadComplete: (asset: { name: string; key: string; url: string }) => void;
@@ -28,7 +31,6 @@ export default function FileDropzone({ onUploadComplete }: FileDropzoneProps) {
     setProgress(0);
 
     try {
-      // Step 1: Get presigned URL
       const res = await fetch('/api/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -46,7 +48,6 @@ export default function FileDropzone({ onUploadComplete }: FileDropzoneProps) {
 
       const { uploadUrl, assetKey, publicUrl } = await res.json();
 
-      // Step 2: Upload directly to S3
       const xhr = new XMLHttpRequest();
       xhr.upload.addEventListener('progress', (e) => {
         if (e.lengthComputable) {
@@ -88,29 +89,36 @@ export default function FileDropzone({ onUploadComplete }: FileDropzoneProps) {
       onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
-      className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors cursor-pointer ${
-        isDragging ? 'border-blue-500 bg-blue-500/10' : 'border-gray-700 hover:border-gray-600'
+      className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer bg-gray-900/60 ${
+        isDragging ? 'border-blue-500 bg-blue-500/10' : 'border-gray-800 hover:border-gray-700'
       }`}
     >
       {uploading ? (
-        <div>
-          <p className="text-lg mb-4">Uploading...</p>
-          <div className="w-full bg-gray-800 rounded-full h-3">
-            <div className="bg-blue-600 h-3 rounded-full transition-all" style={{ width: `${progress}%` }} />
-          </div>
-          <p className="text-sm text-gray-400 mt-2">{progress}%</p>
+        <div className="space-y-3 max-w-xs mx-auto">
+          <p className="text-sm font-semibold text-white">Uploading 3D Model...</p>
+          <Progress value={progress} />
+          <p className="text-xs font-mono text-gray-400">{progress}%</p>
         </div>
       ) : (
-        <div>
-          <p className="text-lg mb-2">Drag & drop your 3D asset here</p>
-          <p className="text-sm text-gray-500 mb-4">Supports .glb and .usdz (max 50MB)</p>
-          <label className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg cursor-pointer transition-colors">
-            Browse Files
-            <input type="file" accept=".glb,.usdz" onChange={handleInputChange} className="hidden" />
+        <div className="space-y-3">
+          <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center mx-auto text-gray-400 border border-gray-700">
+            <UploadCloud className="w-6 h-6 text-blue-400" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-white">Drag & drop your 3D asset here</p>
+            <p className="text-xs text-gray-500 mt-0.5">Supports .glb and .usdz (max 50MB)</p>
+          </div>
+          <label>
+            <Button asChild variant="secondary" size="sm" className="cursor-pointer">
+              <span>
+                Browse Files
+                <input type="file" accept=".glb,.usdz" onChange={handleInputChange} className="hidden" />
+              </span>
+            </Button>
           </label>
         </div>
       )}
-      {error && <p className="text-red-400 mt-4">{error}</p>}
+      {error && <p className="text-red-400 text-xs mt-3 font-medium">{error}</p>}
     </div>
   );
 }
