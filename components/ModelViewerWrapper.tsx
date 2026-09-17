@@ -60,6 +60,7 @@ interface ModelViewerWrapperProps {
   onCameraChange?: (orbit: string) => void;
   onArStatus?: (status: string) => void;
   onSurfaceClick?: (hit: { position: Vector3D; normal: Vector3D }) => void;
+  onSurfaceHover?: (hit: { position: Vector3D; normal: Vector3D } | null) => void;
   interactive?: boolean;
   autoRotate?: boolean;
   children?: React.ReactNode;
@@ -74,6 +75,7 @@ export default function ModelViewerWrapper({
   onCameraChange,
   onArStatus,
   onSurfaceClick,
+  onSurfaceHover,
   interactive = true,
   autoRotate = false,
   children,
@@ -166,10 +168,11 @@ export default function ModelViewerWrapper({
 
   useEffect(() => {
     const viewer = viewerRef.current;
-    if (!viewer || !onSurfaceClick) return;
+    if (!viewer || (!onSurfaceClick && !onSurfaceHover)) return;
 
     let downX = 0;
     let downY = 0;
+    let lastHoverTime = 0;
 
     const handleMouseDown = (e: MouseEvent) => {
       downX = e.offsetX;
@@ -177,6 +180,7 @@ export default function ModelViewerWrapper({
     };
 
     const handleClick = (e: MouseEvent) => {
+      if (!onSurfaceClick) return;
       if (Math.hypot(e.offsetX - downX, e.offsetY - downY) > 6) return;
       const mv = viewer as unknown as {
         positionAndNormalFromPoint: (x: number, y: number) => { position: Vector3D; normal: Vector3D } | null;
@@ -186,13 +190,38 @@ export default function ModelViewerWrapper({
       if (hit) onSurfaceClick(hit);
     };
 
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!onSurfaceHover) return;
+      const now = Date.now();
+      if (now - lastHoverTime < 33) return; // ~30fps max mouse tracking rate
+      lastHoverTime = now;
+
+      const mv = viewer as unknown as {
+        positionAndNormalFromPoint: (x: number, y: number) => { position: Vector3D; normal: Vector3D } | null;
+      };
+      if (typeof mv.positionAndNormalFromPoint !== 'function') return;
+      const hit = mv.positionAndNormalFromPoint(e.offsetX, e.offsetY);
+      onSurfaceHover(hit);
+    };
+
+    const handleMouseLeave = () => {
+      if (onSurfaceHover) {
+        onSurfaceHover(null);
+      }
+    };
+
     viewer.addEventListener('mousedown', handleMouseDown as EventListener);
     viewer.addEventListener('click', handleClick as EventListener);
+    viewer.addEventListener('mousemove', handleMouseMove as EventListener);
+    viewer.addEventListener('mouseleave', handleMouseLeave as EventListener);
+
     return () => {
       viewer.removeEventListener('mousedown', handleMouseDown as EventListener);
       viewer.removeEventListener('click', handleClick as EventListener);
+      viewer.removeEventListener('mousemove', handleMouseMove as EventListener);
+      viewer.removeEventListener('mouseleave', handleMouseLeave as EventListener);
     };
-  }, [onSurfaceClick]);
+  }, [onSurfaceClick, onSurfaceHover]);
 
   // Ensure src is an absolute URL so native AR apps (SceneViewer/QuickLook) can download it
   const toAbsolute = (url: string) =>

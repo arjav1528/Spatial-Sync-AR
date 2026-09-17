@@ -265,9 +265,10 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
           />
         ))}
 
-        {/* Real-time 3D Laser Pointer Marker from Host */}
-        {laserCursor && laserCursor.active && (
+        {/* Real-time 3D Red Dot Laser Pointer from Host */}
+        {laserCursor && laserCursor.active && laserCursor.position && (
           <button
+            key={`laser-${laserCursor.position}`}
             slot="hotspot-laser-pointer"
             data-position={laserCursor.position}
             data-normal={laserCursor.normal}
@@ -275,41 +276,23 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
               background: 'none',
               border: 'none',
               padding: 0,
+              pointerEvents: 'none',
               cursor: 'default',
               display: 'flex',
-              flexDirection: 'column',
               alignItems: 'center',
-              gap: '4px',
+              justifyContent: 'center',
             }}
           >
             <div
               style={{
-                width: '16px',
-                height: '16px',
+                width: '14px',
+                height: '14px',
                 borderRadius: '50%',
-                background: '#ef4444',
+                background: '#ff0000',
                 border: '2px solid #ffffff',
-                boxShadow: '0 0 0 6px rgba(239,68,68,0.35), 0 0 16px rgba(239,68,68,0.9)',
-                animation: 'ping 1.2s cubic-bezier(0,0,0.2,1) infinite',
+                boxShadow: '0 0 10px 4px #ff0000, 0 0 20px 6px rgba(255, 0, 0, 0.7)',
               }}
             />
-            <div
-              style={{
-                background: 'rgba(239,68,68,0.95)',
-                color: '#ffffff',
-                border: '1px solid rgba(255,255,255,0.8)',
-                borderRadius: '9999px',
-                padding: '2px 8px',
-                fontSize: '10px',
-                fontWeight: 700,
-                whiteSpace: 'nowrap',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-              }}
-            >
-              🎯 Host Pointer
-            </div>
           </button>
         )}
       </ModelViewerWrapper>
@@ -326,13 +309,6 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
           WebXR Active
         </div>
       </div>
-
-      {/* Host Laser Pointer Active Banner on Buyer POV */}
-      {laserCursor && laserCursor.active && (
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 bg-red-600/90 backdrop-blur text-white px-3.5 py-1 rounded-full border border-red-500/50 text-[11px] font-medium flex items-center gap-1.5 shadow-lg pointer-events-none z-20 animate-pulse">
-          <span>🎯</span> Host is pointing at product
-        </div>
-      )}
 
       {/* Camera Sync Telemetry Pill */}
       {arStatus === 'inactive' && !laserCursor?.active && (

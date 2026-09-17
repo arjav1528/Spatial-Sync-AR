@@ -97,8 +97,14 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
     }
   };
 
-  const handleSurfaceClick = useCallback((hit: { position: { x: number; y: number; z: number }; normal: { x: number; y: number; z: number } }) => {
+  const handleSurfaceHover = useCallback((hit: { position: { x: number; y: number; z: number }; normal: { x: number; y: number; z: number } } | null) => {
     if (!isLaserActive) return;
+
+    if (!hit) {
+      setLocalLaserCursor(null);
+      sendCursorUpdate(null);
+      return;
+    }
 
     const p = hit.position;
     const n = hit.normal;
@@ -150,7 +156,7 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
             size="sm"
             className="gap-1.5"
           >
-            <Target className="w-3.5 h-3.5" />
+            <Target className="w-3.5 h-3.5 text-red-500" />
             Laser Pointer {isLaserActive ? 'ON' : 'OFF'}
           </Button>
 
@@ -186,7 +192,7 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
             cameraOrbit={currentOrbit}
             cameraTarget={cameraTarget}
             onCameraChange={handleCameraChange}
-            onSurfaceClick={handleSurfaceClick}
+            onSurfaceHover={handleSurfaceHover}
             interactive={!autoRotate}
             autoRotate={autoRotate}
           >
@@ -200,65 +206,43 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
               />
             ))}
 
-            {/* Glowing 3D Laser Pointer Marker */}
-            {localLaserCursor && localLaserCursor.active && (
+            {/* Simple Red Dot Laser Pointer */}
+            {localLaserCursor && localLaserCursor.active && localLaserCursor.position && (
               <button
+                key={`laser-${localLaserCursor.position}`}
                 slot="hotspot-laser-pointer"
                 data-position={localLaserCursor.position}
                 data-normal={localLaserCursor.normal}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setLocalLaserCursor(null);
-                  sendCursorUpdate(null);
-                }}
                 style={{
                   background: 'none',
                   border: 'none',
                   padding: 0,
-                  cursor: 'pointer',
+                  pointerEvents: 'none',
+                  cursor: 'default',
                   display: 'flex',
-                  flexDirection: 'column',
                   alignItems: 'center',
-                  gap: '4px',
+                  justifyContent: 'center',
                 }}
               >
                 <div
                   style={{
-                    width: '16px',
-                    height: '16px',
+                    width: '14px',
+                    height: '14px',
                     borderRadius: '50%',
-                    background: '#ef4444',
+                    background: '#ff0000',
                     border: '2px solid #ffffff',
-                    boxShadow: '0 0 0 6px rgba(239,68,68,0.35), 0 0 16px rgba(239,68,68,0.9)',
-                    animation: 'ping 1.2s cubic-bezier(0,0,0.2,1) infinite',
+                    boxShadow: '0 0 10px 4px #ff0000, 0 0 20px 6px rgba(255, 0, 0, 0.7)',
                   }}
                 />
-                <div
-                  style={{
-                    background: 'rgba(239,68,68,0.95)',
-                    color: '#ffffff',
-                    border: '1px solid rgba(255,255,255,0.8)',
-                    borderRadius: '9999px',
-                    padding: '2px 8px',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    whiteSpace: 'nowrap',
-                    boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
-                    letterSpacing: '0.04em',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  🎯 Host Pointer
-                </div>
               </button>
             )}
           </ModelViewerWrapper>
 
-          {/* Laser Pointer Hint Banner */}
+          {/* Laser Pointer Active Status Indicator */}
           {isLaserActive && (
             <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-zinc-900/90 backdrop-blur border border-zinc-700 rounded-full px-4 py-1.5 text-xs text-zinc-300 pointer-events-none flex items-center gap-2 z-10 shadow-lg">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              Click anywhere on the model to project a 3D Laser Pointer to the buyer
+              Hover cursor over model — Laser dot follows mouse in real-time
             </div>
           )}
 
