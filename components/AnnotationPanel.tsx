@@ -1,6 +1,9 @@
 'use client';
 
 import { Hotspot } from './HotspotMarker';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
 
 interface AnnotationPanelProps {
   hotspot: Hotspot;
@@ -9,48 +12,49 @@ interface AnnotationPanelProps {
 
 export default function AnnotationPanel({ hotspot, onClose }: AnnotationPanelProps) {
   return (
-    <div className="absolute bottom-6 right-6 w-72 bg-gray-900/95 backdrop-blur-md border border-gray-700 rounded-2xl shadow-2xl z-20 overflow-hidden">
+    <Card className="absolute bottom-6 right-6 w-72 bg-gray-900/95 backdrop-blur-md border-gray-700 shadow-2xl z-20 overflow-hidden">
       {/* Header */}
-      <div className="flex items-start justify-between p-4 border-b border-gray-800">
+      <CardHeader className="flex flex-row items-start justify-between p-4 border-b border-gray-800 space-y-0">
         <div className="flex-1 min-w-0">
           <p className="text-[9px] font-mono font-bold text-blue-400 uppercase tracking-widest mb-1">
             Component Detail
           </p>
-          <h3 className="text-sm font-bold text-white leading-snug">{hotspot.title}</h3>
+          <CardTitle className="text-sm font-bold text-white leading-snug">{hotspot.title}</CardTitle>
         </div>
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={onClose}
-          className="ml-3 mt-0.5 text-gray-500 hover:text-white transition-colors text-base leading-none flex-shrink-0"
+          className="h-6 w-6 text-gray-400 hover:text-white"
           aria-label="Close annotation panel"
         >
-          ✕
-        </button>
-      </div>
+          <X className="w-4 h-4" />
+        </Button>
+      </CardHeader>
 
       {/* Description */}
-      <div className="px-4 py-3 border-b border-gray-800/60">
+      <CardContent className="p-4 space-y-3">
         <p className="text-xs text-gray-300 leading-relaxed">{hotspot.description}</p>
-      </div>
 
-      {/* Specs */}
-      {Object.keys(hotspot.specs).length > 0 && (
-        <div className="px-4 py-3">
-          <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2.5">
-            Specifications
-          </p>
-          <div className="space-y-2">
-            {Object.entries(hotspot.specs).map(([key, val]) => (
-              <div key={key} className="flex items-center justify-between gap-3 text-xs">
-                <span className="text-gray-400 shrink-0">{key}</span>
-                <span className="text-white font-semibold font-mono text-right">{val}</span>
-              </div>
-            ))}
+        {/* Specs */}
+        {Object.keys(hotspot.specs).length > 0 && (
+          <div className="pt-2 border-t border-gray-800/60">
+            <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2">
+              Specifications
+            </p>
+            <div className="space-y-1.5">
+              {Object.entries(hotspot.specs).map(([key, val]) => (
+                <div key={key} className="flex items-center justify-between gap-3 text-xs">
+                  <span className="text-gray-400 shrink-0">{key}</span>
+                  <span className="text-white font-semibold font-mono text-right">{val}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </CardContent>
 
-      {/* Footer accent */}
       <div className="h-0.5 bg-gradient-to-r from-blue-600/0 via-blue-500/60 to-blue-600/0" />
-    </div>
+    </Card>
   );
 }

@@ -5,6 +5,11 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import ModelViewerWrapper from '@/components/ModelViewerWrapper';
 import HotspotMarker, { Hotspot } from '@/components/HotspotMarker';
 import AnnotationPanel from '@/components/AnnotationPanel';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { ArrowLeft, Edit3, Eye, Save, Trash2, X } from 'lucide-react';
 
 interface StoredHotspot extends Hotspot {
   modelId: string;
@@ -208,35 +213,40 @@ function AnnotatePageInner() {
   return (
     <div className="flex flex-col h-screen bg-gray-950 text-white select-none overflow-hidden">
       {/* Header */}
-      <header className="h-14 bg-gray-900/90 backdrop-blur border-b border-gray-800 px-5 flex items-center justify-between z-20 flex-shrink-0">
+      <header className="h-14 bg-gray-900 border-b border-gray-800 px-5 flex items-center justify-between z-20 flex-shrink-0">
         <div className="flex items-center gap-3">
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => router.push('/admin')}
-            className="text-gray-400 hover:text-white text-sm transition-colors flex items-center gap-1.5"
+            className="gap-1.5 text-xs text-gray-300 hover:text-white"
           >
-            ← Admin
-          </button>
+            <ArrowLeft className="w-3.5 h-3.5" /> Models
+          </Button>
           <div className="h-4 w-px bg-gray-800" />
-          <span className="text-sm font-semibold text-white">Annotation Editor</span>
-          <span className="text-xs font-mono text-gray-500 bg-gray-900 border border-gray-800 px-2 py-0.5 rounded">{assetKey.split('/').pop()}</span>
+          <span className="text-sm font-bold text-white">Annotation Editor</span>
+          <Badge variant="secondary" className="font-mono text-[10px]">{assetKey.split('/').pop()}</Badge>
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-500">{hotspots.length} hotspot{hotspots.length !== 1 ? 's' : ''}</span>
-          {/* Edit / Preview toggle */}
+          <span className="text-xs text-gray-500 font-mono">{hotspots.length} pin{hotspots.length !== 1 ? 's' : ''}</span>
           <div className="flex items-center bg-gray-950 border border-gray-800 rounded-lg p-0.5 text-xs font-medium">
-            <button
+            <Button
+              variant={isEditMode ? 'default' : 'ghost'}
+              size="sm"
               onClick={() => { setIsEditMode(true); setSelectedHotspot(null); }}
-              className={`px-3 py-1.5 rounded-md transition-colors ${isEditMode ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+              className="h-7 text-xs gap-1"
             >
-              Edit Mode
-            </button>
-            <button
+              <Edit3 className="w-3.5 h-3.5" /> Edit
+            </Button>
+            <Button
+              variant={!isEditMode ? 'emerald' : 'ghost'}
+              size="sm"
               onClick={() => { setIsEditMode(false); handleClose(); }}
-              className={`px-3 py-1.5 rounded-md transition-colors ${!isEditMode ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:text-white'}`}
+              className="h-7 text-xs gap-1"
             >
-              Preview
-            </button>
+              <Eye className="w-3.5 h-3.5" /> Preview
+            </Button>
           </div>
         </div>
       </header>
