@@ -355,9 +355,9 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
           {/* End Session Button */}
           <button
             onClick={() => router.push(`/dashboard?sessionId=${sessionId}`)}
-            className="w-full bg-red-600/90 hover:bg-red-600 text-white py-3 rounded-xl font-semibold text-xs tracking-wide shadow-lg shadow-red-600/20 transition-all flex items-center justify-center gap-2"
+            className="w-full bg-red-600/90 hover:bg-red-600 text-white py-3 rounded-xl font-semibold text-xs tracking-wide shadow-lg shadow-red-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
-            <span>⏹</span> End Session & View Analytics
+            <span>⏹</span> End Session
           </button>
         </aside>
       </div>
