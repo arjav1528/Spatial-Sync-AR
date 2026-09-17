@@ -4,17 +4,16 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] cursor-pointer',
+  'inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] cursor-pointer select-none',
   {
     variants: {
       variant: {
-        default: 'bg-blue-600 text-white shadow hover:bg-blue-700',
-        destructive: 'bg-red-600 text-white shadow-sm hover:bg-red-700',
-        outline: 'border border-gray-800 bg-gray-900/60 text-gray-200 shadow-sm hover:bg-gray-800 hover:text-white',
-        secondary: 'bg-gray-800 text-gray-200 hover:bg-gray-700 hover:text-white',
-        ghost: 'text-gray-400 hover:bg-gray-800 hover:text-white',
-        link: 'text-blue-400 underline-offset-4 hover:underline',
-        emerald: 'bg-emerald-600 text-white shadow hover:bg-emerald-700',
+        default: 'bg-white text-zinc-950 shadow hover:bg-zinc-200 font-semibold',
+        destructive: 'bg-red-600 text-white shadow-sm hover:bg-red-700 font-semibold',
+        outline: 'border border-zinc-800 bg-zinc-900/80 text-zinc-200 shadow-sm hover:bg-zinc-800 hover:text-white',
+        secondary: 'bg-zinc-800 text-zinc-200 hover:bg-zinc-700 hover:text-white border border-zinc-700',
+        ghost: 'text-zinc-400 hover:bg-zinc-800 hover:text-white',
+        link: 'text-white underline-offset-4 hover:underline',
       },
       size: {
         default: 'h-9 px-4 py-2 text-xs font-semibold',
