@@ -26,7 +26,7 @@ interface SpatialState {
 }
 
 const THROTTLE_MS = 66; // ~15fps max send rate
-const DEFAULT_WS_URL = 'wss://8t20x6jssb.execute-api.eu-central-1.amazonaws.com/dev';
+const DEFAULT_WS_URL = 'wss://notts6p9cc.execute-api.eu-central-1.amazonaws.com/dev';
 
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
