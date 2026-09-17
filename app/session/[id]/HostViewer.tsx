@@ -8,6 +8,8 @@ import HotspotMarker, { Hotspot } from '@/components/HotspotMarker';
 import AnnotationPanel from '@/components/AnnotationPanel';
 import { useSpatialSync } from '@/lib/hooks/useSpatialSync';
 import { Button } from '@/components/ui/button';
+import { LaserCursor } from '@/lib/socket-store';
+import { Target, RotateCcw, RotateCw } from 'lucide-react';
 
 interface HostViewerProps {
   sessionId: string;
@@ -19,6 +21,8 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
   const [currentOrbit, setCurrentOrbit] = useState('0deg 75deg 2.5m');
   const [activeTab, setActiveTab] = useState<'share' | 'participants' | 'asset' | 'hotspots'>('share');
   const [autoRotate, setAutoRotate] = useState(false);
+  const [isLaserActive, setIsLaserActive] = useState(true);
+  const [localLaserCursor, setLocalLaserCursor] = useState<LaserCursor | null>(null);
   const [assetName, setAssetName] = useState('3D Asset');
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
@@ -28,6 +32,8 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
     isConnected,
     viewerCount,
     sendUpdate,
+    sendCursorUpdate,
+    sendHotspotUpdate,
   } = useSpatialSync(sessionId, 'host-token');
 
   // Fetch session metadata, then load matching annotations
@@ -70,17 +76,51 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
     setCurrentOrbit('0deg 75deg 2.5m');
     setCameraTarget(undefined);
     setSelectedHotspot(null);
+    setLocalLaserCursor(null);
     sendUpdate('0deg 75deg 2.5m');
+    sendHotspotUpdate(null);
+    sendCursorUpdate(null);
   };
 
   const handleHotspotSelect = (hotspot: Hotspot) => {
-    setSelectedHotspot(prev => prev?.id === hotspot.id ? null : hotspot);
-    if (selectedHotspot?.id !== hotspot.id) {
+    const isNew = selectedHotspot?.id !== hotspot.id;
+    const newSelected = isNew ? hotspot : null;
+    setSelectedHotspot(newSelected);
+    sendHotspotUpdate(newSelected ? hotspot.id : null);
+
+    if (newSelected) {
       setCurrentOrbit(hotspot.cameraOrbit);
       setCameraTarget(hotspot.cameraTarget);
       sendUpdate(hotspot.cameraOrbit);
     } else {
       setCameraTarget(undefined);
+    }
+  };
+
+  const handleSurfaceClick = useCallback((hit: { position: { x: number; y: number; z: number }; normal: { x: number; y: number; z: number } }) => {
+    if (!isLaserActive) return;
+
+    const p = hit.position;
+    const n = hit.normal;
+    const posStr = `${p.x.toFixed(4)} ${p.y.toFixed(4)} ${p.z.toFixed(4)}`;
+    const normStr = `${n.x.toFixed(4)} ${n.y.toFixed(4)} ${n.z.toFixed(4)}`;
+
+    const newCursor: LaserCursor = {
+      position: posStr,
+      normal: normStr,
+      active: true,
+    };
+
+    setLocalLaserCursor(newCursor);
+    sendCursorUpdate(newCursor);
+  }, [isLaserActive, sendCursorUpdate]);
+
+  const toggleLaserPointer = () => {
+    const nextState = !isLaserActive;
+    setIsLaserActive(nextState);
+    if (!nextState) {
+      setLocalLaserCursor(null);
+      sendCursorUpdate(null);
     }
   };
 
@@ -98,24 +138,39 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
           </span>
         </div>
 
-        <div className="flex items-center gap-4 text-xs font-medium">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3 text-xs font-medium">
+          <div className="flex items-center gap-2 mr-2">
             <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-white' : 'bg-zinc-600'}`} />
             <span className="text-zinc-300">{isConnected ? 'Live' : 'Connecting'}</span>
           </div>
 
           <Button
+            onClick={toggleLaserPointer}
+            variant={isLaserActive ? 'default' : 'outline'}
+            size="sm"
+            className="gap-1.5"
+          >
+            <Target className="w-3.5 h-3.5" />
+            Laser Pointer {isLaserActive ? 'ON' : 'OFF'}
+          </Button>
+
+          <Button
             onClick={handleResetView}
             variant="outline"
             size="sm"
+            className="gap-1.5"
           >
+            <RotateCcw className="w-3.5 h-3.5" />
             Reset View
           </Button>
+
           <Button
             onClick={() => setAutoRotate(!autoRotate)}
             variant={autoRotate ? 'default' : 'outline'}
             size="sm"
+            className="gap-1.5"
           >
+            <RotateCw className="w-3.5 h-3.5" />
             Auto Rotate
           </Button>
         </div>
@@ -131,9 +186,11 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
             cameraOrbit={currentOrbit}
             cameraTarget={cameraTarget}
             onCameraChange={handleCameraChange}
+            onSurfaceClick={handleSurfaceClick}
             interactive={!autoRotate}
             autoRotate={autoRotate}
           >
+            {/* Hotspot Markers */}
             {hotspots.map((hotspot) => (
               <HotspotMarker
                 key={hotspot.id}
@@ -142,12 +199,77 @@ export default function HostViewer({ sessionId }: HostViewerProps) {
                 onClick={() => handleHotspotSelect(hotspot)}
               />
             ))}
+
+            {/* Glowing 3D Laser Pointer Marker */}
+            {localLaserCursor && localLaserCursor.active && (
+              <button
+                slot="hotspot-laser-pointer"
+                data-position={localLaserCursor.position}
+                data-normal={localLaserCursor.normal}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLocalLaserCursor(null);
+                  sendCursorUpdate(null);
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <div
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    borderRadius: '50%',
+                    background: '#ef4444',
+                    border: '2px solid #ffffff',
+                    boxShadow: '0 0 0 6px rgba(239,68,68,0.35), 0 0 16px rgba(239,68,68,0.9)',
+                    animation: 'ping 1.2s cubic-bezier(0,0,0.2,1) infinite',
+                  }}
+                />
+                <div
+                  style={{
+                    background: 'rgba(239,68,68,0.95)',
+                    color: '#ffffff',
+                    border: '1px solid rgba(255,255,255,0.8)',
+                    borderRadius: '9999px',
+                    padding: '2px 8px',
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  🎯 Host Pointer
+                </div>
+              </button>
+            )}
           </ModelViewerWrapper>
+
+          {/* Laser Pointer Hint Banner */}
+          {isLaserActive && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-zinc-900/90 backdrop-blur border border-zinc-700 rounded-full px-4 py-1.5 text-xs text-zinc-300 pointer-events-none flex items-center gap-2 z-10 shadow-lg">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              Click anywhere on the model to project a 3D Laser Pointer to the buyer
+            </div>
+          )}
 
           {selectedHotspot && (
             <AnnotationPanel
               hotspot={selectedHotspot}
-              onClose={() => { setSelectedHotspot(null); setCameraTarget(undefined); }}
+              onClose={() => {
+                setSelectedHotspot(null);
+                setCameraTarget(undefined);
+                sendHotspotUpdate(null);
+              }}
             />
           )}
         </div>

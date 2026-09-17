@@ -23,18 +23,20 @@ exports.handler = async (event) => {
 
   const { action, sessionId, data } = body;
 
-  if (action === 'SYNC_CAMERA') {
+  if (action && action.startsWith('SYNC_')) {
     try {
-      // Store the current state for reconnection
-      await docClient.send(new PutCommand({
-        TableName: TABLE_NAME,
-        Item: {
-          PK: `SESSION#${sessionId}`,
-          SK: 'STATE#current',
-          cameraOrbit: data.cameraOrbit,
-          updatedAt: new Date().toISOString(),
-        },
-      }));
+      if (action === 'SYNC_CAMERA' && data?.cameraOrbit) {
+        // Store the current state for reconnection
+        await docClient.send(new PutCommand({
+          TableName: TABLE_NAME,
+          Item: {
+            PK: `SESSION#${sessionId}`,
+            SK: 'STATE#current',
+            cameraOrbit: data.cameraOrbit,
+            updatedAt: new Date().toISOString(),
+          },
+        }));
+      }
 
       // Get all connections in this session
       const connections = await docClient.send(new QueryCommand({
@@ -47,8 +49,8 @@ exports.handler = async (event) => {
       }));
 
       const payload = JSON.stringify({
-        action: 'SYNC_CAMERA',
-        data: { cameraOrbit: data.cameraOrbit },
+        action,
+        data,
       });
 
       // Broadcast to all connections except sender
@@ -61,7 +63,6 @@ exports.handler = async (event) => {
             Data: payload,
           }));
         } catch (err) {
-          // If connection is gone (410 Gone), purge stale record from DynamoDB
           if (err.statusCode === 410 || err.name === 'GoneException' || err.$metadata?.httpStatusCode === 410) {
             console.log(`Purging stale connection: ${conn.connectionId}`);
             try {

@@ -10,8 +10,12 @@ export function useSpatialSync(sessionId: string, token: string) {
     isConnected,
     connectionStatus,
     cameraOrbit,
+    laserCursor,
+    selectedHotspotId,
     viewers,
     sendCameraUpdate,
+    sendCursorUpdate,
+    sendHotspotUpdate,
     setCameraOrbit,
   } = useSpatialStore();
 
@@ -44,8 +48,12 @@ export function useSpatialSync(sessionId: string, token: string) {
     isConnected,
     connectionStatus,
     cameraOrbit,
+    laserCursor,
+    selectedHotspotId,
     viewers,
     viewerCount: viewers.length,
     sendUpdate: sendCameraUpdate,
+    sendCursorUpdate,
+    sendHotspotUpdate,
   };
 }

@@ -34,12 +34,29 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
   const [isIosDevice, setIsIosDevice] = useState(false);
 
-  const { cameraOrbit, isConnected } = useSpatialSync(sessionId, 'viewer-token');
+  const {
+    cameraOrbit,
+    laserCursor,
+    selectedHotspotId,
+    isConnected,
+  } = useSpatialSync(sessionId, 'viewer-token');
 
   const targetOrbitRef = useRef({ theta: 0, phi: 75, radius: 2.5 });
   const currentOrbitRef = useRef({ theta: 0, phi: 75, radius: 2.5 });
   const gazeBufferRef = useRef<{ x: number; y: number; z: number; theta: number; phi: number; timestamp: number }[]>([]);
   const animFrameRef = useRef<number>(0);
+
+  // Sync selected hotspot automatically when Host clicks or highlights a hotspot
+  useEffect(() => {
+    if (selectedHotspotId) {
+      const matched = hotspots.find((h) => h.id === selectedHotspotId);
+      if (matched) {
+        setSelectedHotspot(matched);
+      }
+    } else {
+      setSelectedHotspot(null);
+    }
+  }, [selectedHotspotId, hotspots]);
 
   // Update target orbit whenever host broadcasts new camera position
   useEffect(() => {
@@ -247,6 +264,54 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
             onClick={() => handleHotspotTap(hotspot)}
           />
         ))}
+
+        {/* Real-time 3D Laser Pointer Marker from Host */}
+        {laserCursor && laserCursor.active && (
+          <button
+            slot="hotspot-laser-pointer"
+            data-position={laserCursor.position}
+            data-normal={laserCursor.normal}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'default',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <div
+              style={{
+                width: '16px',
+                height: '16px',
+                borderRadius: '50%',
+                background: '#ef4444',
+                border: '2px solid #ffffff',
+                boxShadow: '0 0 0 6px rgba(239,68,68,0.35), 0 0 16px rgba(239,68,68,0.9)',
+                animation: 'ping 1.2s cubic-bezier(0,0,0.2,1) infinite',
+              }}
+            />
+            <div
+              style={{
+                background: 'rgba(239,68,68,0.95)',
+                color: '#ffffff',
+                border: '1px solid rgba(255,255,255,0.8)',
+                borderRadius: '9999px',
+                padding: '2px 8px',
+                fontSize: '10px',
+                fontWeight: 700,
+                whiteSpace: 'nowrap',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+              }}
+            >
+              🎯 Host Pointer
+            </div>
+          </button>
+        )}
       </ModelViewerWrapper>
 
       {/* Top Mobile Status Header */}
@@ -262,8 +327,15 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
         </div>
       </div>
 
+      {/* Host Laser Pointer Active Banner on Buyer POV */}
+      {laserCursor && laserCursor.active && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 bg-red-600/90 backdrop-blur text-white px-3.5 py-1 rounded-full border border-red-500/50 text-[11px] font-medium flex items-center gap-1.5 shadow-lg pointer-events-none z-20 animate-pulse">
+          <span>🎯</span> Host is pointing at product
+        </div>
+      )}
+
       {/* Camera Sync Telemetry Pill */}
-      {arStatus === 'inactive' && (
+      {arStatus === 'inactive' && !laserCursor?.active && (
         <div className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-zinc-900/80 backdrop-blur px-4 py-1.5 rounded-full border border-zinc-800 text-[11px] font-mono text-zinc-300 flex items-center gap-2 pointer-events-none z-10">
           <span className="text-white">🔄</span>
           <span>Orbit: <span className="text-white font-bold">{displayOrbit}</span></span>
@@ -304,7 +376,7 @@ export default function MobileViewer({ sessionId }: MobileViewerProps) {
         </div>
       )}
 
-      {/* AR Hotspot Annotation Card */}
+      {/* AR Hotspot Annotation Card — Host selection or buyer tap pops this open */}
       {selectedHotspot && (
         <div className="absolute top-20 left-4 right-4 z-30 pointer-events-auto animate-fade-in">
           <div className="bg-zinc-950/95 backdrop-blur-md border border-zinc-800 rounded-2xl p-5 shadow-2xl">

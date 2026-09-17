@@ -1,17 +1,27 @@
 import { create } from 'zustand';
 
+export interface LaserCursor {
+  position: string;
+  normal: string;
+  active: boolean;
+}
+
 interface SpatialState {
   socket: WebSocket | null;
   sessionId: string | null;
   isConnected: boolean;
   connectionStatus: 'idle' | 'connecting' | 'connected' | 'disconnected' | 'error';
   cameraOrbit: string;
+  laserCursor: LaserCursor | null;
+  selectedHotspotId: string | null;
   viewers: string[];
   lastSendTime: number;
 
   connect: (sessionId: string, token: string) => void;
   disconnect: () => void;
   sendCameraUpdate: (orbit: string) => void;
+  sendCursorUpdate: (cursor: LaserCursor | null) => void;
+  sendHotspotUpdate: (hotspotId: string | null) => void;
   setCameraOrbit: (orbit: string) => void;
 }
 
@@ -23,6 +33,8 @@ export const useSpatialStore = create<SpatialState>((set, get) => ({
   isConnected: false,
   connectionStatus: 'idle',
   cameraOrbit: '0deg 75deg 2.5m',
+  laserCursor: null,
+  selectedHotspotId: null,
   viewers: [],
   lastSendTime: 0,
 
@@ -56,6 +68,12 @@ export const useSpatialStore = create<SpatialState>((set, get) => ({
         const data = JSON.parse(event.data);
         if (data.action === 'SYNC_CAMERA' && data.data?.cameraOrbit) {
           set({ cameraOrbit: data.data.cameraOrbit });
+        }
+        if (data.action === 'SYNC_CURSOR') {
+          set({ laserCursor: data.data });
+        }
+        if (data.action === 'SYNC_HOTSPOT') {
+          set({ selectedHotspotId: data.data?.hotspotId ?? null });
         }
         if (data.action === 'VIEWER_UPDATE' && data.viewers) {
           set({ viewers: data.viewers });
@@ -97,6 +115,32 @@ export const useSpatialStore = create<SpatialState>((set, get) => ({
     }));
 
     set({ lastSendTime: now });
+  },
+
+  sendCursorUpdate: (cursor: LaserCursor | null) => {
+    const { socket, isConnected, sessionId } = get();
+    if (!socket || !isConnected || !sessionId) return;
+
+    socket.send(JSON.stringify({
+      action: 'SYNC_CURSOR',
+      sessionId: sessionId,
+      data: cursor,
+    }));
+
+    set({ laserCursor: cursor });
+  },
+
+  sendHotspotUpdate: (hotspotId: string | null) => {
+    const { socket, isConnected, sessionId } = get();
+    if (!socket || !isConnected || !sessionId) return;
+
+    socket.send(JSON.stringify({
+      action: 'SYNC_HOTSPOT',
+      sessionId: sessionId,
+      data: { hotspotId },
+    }));
+
+    set({ selectedHotspotId: hotspotId });
   },
 
   setCameraOrbit: (orbit: string) => {
