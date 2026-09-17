@@ -29,7 +29,7 @@ export default function QRCodeDisplay({ sessionId }: QRCodeDisplayProps) {
   };
 
   return (
-    <div className="bg-gray-950 border border-gray-800 rounded-xl p-4 flex flex-col items-center">
+    <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 flex flex-col items-center">
       <div className="bg-white p-3 rounded-lg shadow-inner flex items-center justify-center">
         <QRCodeSVG
           value={fullUrl}
@@ -40,11 +40,11 @@ export default function QRCodeDisplay({ sessionId }: QRCodeDisplayProps) {
         />
       </div>
 
-      <div className="w-full mt-3 flex items-center gap-2 bg-gray-900 border border-gray-800 rounded-lg px-2.5 py-1.5 text-xs font-mono">
-        <span className="text-gray-400 truncate flex-1">{mounted ? fullUrl : 'Loading...'}</span>
+      <div className="w-full mt-3 flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs font-mono">
+        <span className="text-zinc-400 truncate flex-1">{mounted ? fullUrl : 'Loading...'}</span>
         <button
           onClick={handleCopy}
-          className="text-blue-400 hover:text-blue-300 font-sans font-medium px-2 py-0.5 rounded bg-blue-500/10 hover:bg-blue-500/20 transition-colors shrink-0"
+          className="bg-white text-zinc-950 hover:bg-zinc-200 font-sans font-semibold px-2 py-0.5 rounded transition-colors shrink-0"
         >
           {copied ? 'Copied!' : 'Copy'}
         </button>

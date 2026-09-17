@@ -89,24 +89,24 @@ export default function FileDropzone({ onUploadComplete }: FileDropzoneProps) {
       onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
-      className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer bg-gray-900/60 ${
-        isDragging ? 'border-blue-500 bg-blue-500/10' : 'border-gray-800 hover:border-gray-700'
+      className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer bg-zinc-900/60 ${
+        isDragging ? 'border-white bg-white/5' : 'border-zinc-800 hover:border-zinc-700'
       }`}
     >
       {uploading ? (
         <div className="space-y-3 max-w-xs mx-auto">
           <p className="text-sm font-semibold text-white">Uploading 3D Model...</p>
           <Progress value={progress} />
-          <p className="text-xs font-mono text-gray-400">{progress}%</p>
+          <p className="text-xs font-mono text-zinc-400">{progress}%</p>
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center mx-auto text-gray-400 border border-gray-700">
-            <UploadCloud className="w-6 h-6 text-blue-400" />
+          <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center mx-auto text-white border border-zinc-700">
+            <UploadCloud className="w-6 h-6 text-white" />
           </div>
           <div>
             <p className="text-sm font-semibold text-white">Drag & drop your 3D asset here</p>
-            <p className="text-xs text-gray-500 mt-0.5">Supports .glb and .usdz (max 50MB)</p>
+            <p className="text-xs text-zinc-500 mt-0.5">Supports .glb and .usdz (max 50MB)</p>
           </div>
           <label>
             <Button asChild variant="secondary" size="sm" className="cursor-pointer">

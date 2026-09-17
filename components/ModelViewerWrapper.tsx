@@ -225,21 +225,21 @@ export default function ModelViewerWrapper({
         {children}
       </model-viewer>
 
-      {/* Modern 3D Asset Loading Screen with Percentage */}
+      {/* Modern B&W 3D Asset Loading Screen with Percentage */}
       {(isLoading || !src) && (
-        <div className="absolute inset-0 bg-gray-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 z-30 transition-opacity duration-300">
-          <Card className="bg-gray-900/95 border-gray-800 p-8 max-w-sm w-full text-center space-y-5 shadow-2xl">
+        <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 z-30 transition-opacity duration-300">
+          <Card className="bg-zinc-900/95 border-zinc-800 p-8 max-w-sm w-full text-center space-y-5 shadow-2xl">
             {/* Pulsing 3D Cube Icon */}
             <div className="relative w-16 h-16 mx-auto flex items-center justify-center">
-              <div className="absolute inset-0 rounded-2xl bg-blue-500/20 animate-ping border border-blue-500/30" />
-              <div className="w-14 h-14 bg-blue-600/20 border border-blue-500/40 rounded-2xl flex items-center justify-center text-3xl text-blue-400 shadow-inner">
-                <Box className="w-7 h-7 text-blue-400" />
+              <div className="absolute inset-0 rounded-2xl bg-white/10 animate-ping border border-white/20" />
+              <div className="w-14 h-14 bg-zinc-800 border border-zinc-700 rounded-2xl flex items-center justify-center text-3xl text-white shadow-inner">
+                <Box className="w-7 h-7 text-white" />
               </div>
             </div>
 
             <div>
               <h3 className="text-base font-bold text-white mb-1">Loading 3D Model</h3>
-              <p className="text-xs text-gray-400 font-mono truncate max-w-xs mx-auto">
+              <p className="text-xs text-zinc-400 font-mono truncate max-w-xs mx-auto">
                 {fileNameDisplay}
               </p>
             </div>
@@ -247,15 +247,15 @@ export default function ModelViewerWrapper({
             {/* Percentage & Progress Bar */}
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs font-mono font-semibold">
-                <span className="text-gray-400">Downloading Asset</span>
-                <span className="text-blue-400 text-sm font-bold">{loadProgress}%</span>
+                <span className="text-zinc-400">Downloading Asset</span>
+                <span className="text-white text-sm font-bold">{loadProgress}%</span>
               </div>
 
               <Progress value={loadProgress} />
             </div>
 
-            <div className="text-[11px] text-gray-500 font-mono flex items-center justify-center gap-1.5 pt-1">
-              <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
+            <div className="text-[11px] text-zinc-500 font-mono flex items-center justify-center gap-1.5 pt-1">
+              <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
               <span>Parsing WebGL Textures & Geometry</span>
             </div>
           </Card>

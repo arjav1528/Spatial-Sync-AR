@@ -9,9 +9,10 @@ export default function Navbar() {
   const { data: session } = useSession();
 
   return (
-    <header className="bg-gray-950 border-b border-gray-800/80 px-6 py-4 flex items-center justify-between select-none">
+    <header className="bg-zinc-950 border-b border-zinc-800 px-6 py-4 flex items-center justify-between select-none">
       <Link href={session ? '/rep' : '/'} className="text-xl font-bold tracking-tight">
-        <span className="text-blue-500">Spatial</span>Sync
+        <span className="text-white">Spatial</span>
+        <span className="text-zinc-500 font-medium">Sync</span>
       </Link>
 
       <div>
