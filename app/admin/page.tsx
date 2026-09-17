@@ -6,6 +6,7 @@ import Link from 'next/link';
 import FileDropzone from '@/components/FileDropzone';
 import Navbar from '@/components/Navbar';
 import { PREUPLOADED_MODELS } from '@/lib/aws-config';
+import { Button } from '@/components/ui/button';
 
 interface UploadedAsset {
   name: string;
@@ -45,7 +46,7 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen bg-zinc-950 text-white">
       <Navbar />
       <main className="max-w-5xl mx-auto px-6 py-8 space-y-10">
         {/* Available Models Section */}
@@ -56,31 +57,33 @@ export default function AdminPage() {
             {PREUPLOADED_MODELS.map((model) => (
               <div
                 key={model.key}
-                className="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col justify-between"
+                className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex flex-col justify-between"
               >
                 <div className="flex items-start gap-3 mb-4">
                   <span className="text-2xl">{model.icon}</span>
                   <div>
                     <h3 className="text-base font-bold text-white">{model.name}</h3>
-                    <p className="text-xs text-gray-400 mt-0.5">{model.description}</p>
+                    <p className="text-xs text-zinc-400 mt-0.5">{model.description}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 pt-3 border-t border-gray-800">
+                <div className="flex items-center gap-3 pt-3 border-t border-zinc-800">
                   <Link
                     href={`/admin/annotate?assetKey=${encodeURIComponent(model.key)}`}
-                    className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-200 py-2 rounded-lg text-xs font-medium text-center border border-gray-700 transition-colors"
+                    className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 py-2 rounded-lg text-xs font-medium text-center border border-zinc-700 transition-colors"
                   >
                     Edit Pins
                   </Link>
 
-                  <button
+                  <Button
                     onClick={() => startSession(model.key)}
                     disabled={creatingSession !== null}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer"
+                    variant="default"
+                    size="sm"
+                    className="flex-1 text-xs"
                   >
                     {creatingSession === model.key ? 'Starting...' : 'Start Session'}
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}
@@ -99,26 +102,28 @@ export default function AdminPage() {
             <h2 className="text-lg font-bold text-white mb-3">Custom Uploaded Models</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {uploadedAssets.map((asset, i) => (
-                <div key={i} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col justify-between">
+                <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col justify-between">
                   <div>
-                    <p className="font-medium text-sm truncate">{asset.name}</p>
-                    <p className="text-xs text-gray-500 font-mono truncate mt-1">{asset.key}</p>
+                    <p className="font-medium text-sm truncate text-white">{asset.name}</p>
+                    <p className="text-xs text-zinc-500 font-mono truncate mt-1">{asset.key}</p>
                   </div>
 
                   <div className="mt-3 flex gap-2">
                     <Link
                       href={`/admin/annotate?assetKey=${encodeURIComponent(asset.key)}&assetUrl=${encodeURIComponent(asset.url)}`}
-                      className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-200 py-2 rounded-lg text-xs font-medium text-center border border-gray-700"
+                      className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 py-2 rounded-lg text-xs font-medium text-center border border-zinc-700"
                     >
                       Edit Pins
                     </Link>
-                    <button
+                    <Button
                       onClick={() => startSession(asset.key)}
                       disabled={creatingSession !== null}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-xs font-medium cursor-pointer"
+                      variant="default"
+                      size="sm"
+                      className="flex-1 text-xs"
                     >
                       {creatingSession === asset.key ? 'Creating...' : 'Start Session'}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ))}

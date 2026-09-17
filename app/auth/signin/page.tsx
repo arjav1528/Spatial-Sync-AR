@@ -35,21 +35,21 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-6">
-      <Card className="w-full max-w-md shadow-2xl border-gray-800 bg-gray-900/90 backdrop-blur">
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6">
+      <Card className="w-full max-w-md shadow-2xl border-zinc-800 bg-zinc-900/90 backdrop-blur">
         <CardHeader className="text-center pb-4">
-          <div className="w-12 h-12 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center text-xl mx-auto mb-3 border border-blue-500/30">
-            <Briefcase className="w-6 h-6 text-blue-400" />
+          <div className="w-12 h-12 bg-zinc-800 text-white rounded-full flex items-center justify-center text-xl mx-auto mb-3 border border-zinc-700">
+            <Briefcase className="w-6 h-6 text-white" />
           </div>
-          <CardTitle className="text-2xl">Sales Rep Sign In</CardTitle>
-          <CardDescription>Sign in to launch sessions & view buyer analytics</CardDescription>
+          <CardTitle className="text-2xl text-white">Sales Rep Sign In</CardTitle>
+          <CardDescription className="text-zinc-400">Sign in to launch sessions & view buyer analytics</CardDescription>
         </CardHeader>
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-400 flex items-center gap-1.5">
-                <Mail className="w-3.5 h-3.5 text-blue-400" />
+              <label className="text-xs font-semibold text-zinc-400 flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5 text-white" />
                 Rep Email
               </label>
               <Input
@@ -62,8 +62,8 @@ export default function SignInPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-400 flex items-center gap-1.5">
-                <KeyRound className="w-3.5 h-3.5 text-blue-400" />
+              <label className="text-xs font-semibold text-zinc-400 flex items-center gap-1.5">
+                <KeyRound className="w-3.5 h-3.5 text-white" />
                 Password
               </label>
               <Input
@@ -87,10 +87,10 @@ export default function SignInPage() {
             </Button>
           </form>
 
-          <div className="mt-6 p-3.5 bg-gray-950/60 rounded-lg border border-gray-800 text-xs space-y-1">
-            <p className="font-semibold text-gray-400 mb-1">Demo Credentials:</p>
-            <p className="font-mono text-gray-400">Email: <span className="text-blue-400 font-semibold">rep@spatialsync.io</span></p>
-            <p className="font-mono text-gray-400">Password: <span className="text-blue-400 font-semibold">demo123</span></p>
+          <div className="mt-6 p-3.5 bg-zinc-950/60 rounded-lg border border-zinc-800 text-xs space-y-1">
+            <p className="font-semibold text-zinc-400 mb-1">Demo Credentials:</p>
+            <p className="font-mono text-zinc-400">Email: <span className="text-white font-semibold">rep@spatialsync.io</span></p>
+            <p className="font-mono text-zinc-400">Password: <span className="text-white font-semibold">demo123</span></p>
           </div>
         </CardContent>
       </Card>

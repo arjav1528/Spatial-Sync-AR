@@ -7,9 +7,7 @@ import HotspotMarker, { Hotspot } from '@/components/HotspotMarker';
 import AnnotationPanel from '@/components/AnnotationPanel';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { ArrowLeft, Edit3, Eye, Save, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Edit3, Eye } from 'lucide-react';
 
 interface StoredHotspot extends Hotspot {
   modelId: string;
@@ -211,26 +209,26 @@ function AnnotatePageInner() {
   const pendingNormal = pendingHit ? hitToStrings(pendingHit).normal : null;
 
   return (
-    <div className="flex flex-col h-screen bg-gray-950 text-white select-none overflow-hidden">
+    <div className="flex flex-col h-screen bg-zinc-950 text-white select-none overflow-hidden">
       {/* Header */}
-      <header className="h-14 bg-gray-900 border-b border-gray-800 px-5 flex items-center justify-between z-20 flex-shrink-0">
+      <header className="h-14 bg-zinc-900 border-b border-zinc-800 px-5 flex items-center justify-between z-20 flex-shrink-0">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.push('/admin')}
-            className="gap-1.5 text-xs text-gray-300 hover:text-white"
+            className="gap-1.5 text-xs text-zinc-300 hover:text-white"
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Models
           </Button>
-          <div className="h-4 w-px bg-gray-800" />
+          <div className="h-4 w-px bg-zinc-800" />
           <span className="text-sm font-bold text-white">Annotation Editor</span>
           <Badge variant="secondary" className="font-mono text-[10px]">{assetKey.split('/').pop()}</Badge>
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-500 font-mono">{hotspots.length} pin{hotspots.length !== 1 ? 's' : ''}</span>
-          <div className="flex items-center bg-gray-950 border border-gray-800 rounded-lg p-0.5 text-xs font-medium">
+          <span className="text-xs text-zinc-500 font-mono">{hotspots.length} pin{hotspots.length !== 1 ? 's' : ''}</span>
+          <div className="flex items-center bg-zinc-950 border border-zinc-800 rounded-lg p-0.5 text-xs font-medium">
             <Button
               variant={isEditMode ? 'default' : 'ghost'}
               size="sm"
@@ -240,7 +238,7 @@ function AnnotatePageInner() {
               <Edit3 className="w-3.5 h-3.5" /> Edit
             </Button>
             <Button
-              variant={!isEditMode ? 'emerald' : 'ghost'}
+              variant={!isEditMode ? 'default' : 'ghost'}
               size="sm"
               onClick={() => { setIsEditMode(false); handleClose(); }}
               className="h-7 text-xs gap-1"
@@ -253,7 +251,7 @@ function AnnotatePageInner() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* 3D Viewport */}
-        <div className="flex-1 relative bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950">
+        <div className="flex-1 relative bg-zinc-950">
           <ModelViewerWrapper
             src={resolvedModelUrl}
             ar={false}
@@ -298,19 +296,19 @@ function AnnotatePageInner() {
                   width: '16px',
                   height: '16px',
                   borderRadius: '50%',
-                  background: '#f59e0b',
-                  border: '2px solid #fcd34d',
-                  boxShadow: '0 0 0 4px rgba(245,158,11,0.25), 0 0 12px rgba(245,158,11,0.5)',
+                  background: '#ffffff',
+                  border: '2px solid #e4e4e7',
+                  boxShadow: '0 0 0 4px rgba(255,255,255,0.25), 0 0 12px rgba(255,255,255,0.5)',
                   animation: 'ping 1s cubic-bezier(0,0,0.2,1) infinite',
                 }} />
                 <div style={{
-                  background: 'rgba(3,7,18,0.9)',
-                  border: '1px solid rgba(245,158,11,0.45)',
+                  background: 'rgba(9,9,11,0.9)',
+                  border: '1px solid rgba(255,255,255,0.8)',
                   borderRadius: '9999px',
                   padding: '2px 8px',
                   fontSize: '10px',
                   fontWeight: 700,
-                  color: '#fcd34d',
+                  color: '#ffffff',
                   whiteSpace: 'nowrap',
                 }}>
                   New Pin
@@ -321,8 +319,8 @@ function AnnotatePageInner() {
 
           {/* Edit mode hint */}
           {isEditMode && !isFormOpen && (
-            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-gray-900/90 backdrop-blur border border-gray-700 rounded-full px-4 py-2 text-xs text-gray-300 pointer-events-none flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-zinc-900/90 backdrop-blur border border-zinc-700 rounded-full px-4 py-2 text-xs text-zinc-300 pointer-events-none flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
               Click anywhere on the model to place a hotspot pin
             </div>
           )}
@@ -337,17 +335,17 @@ function AnnotatePageInner() {
         </div>
 
         {/* Sidebar */}
-        <aside className="w-72 bg-gray-900/95 border-l border-gray-800 flex flex-col z-10">
-          <div className="p-4 border-b border-gray-800">
-            <h2 className="text-sm font-bold">Hotspots</h2>
-            <p className="text-[11px] text-gray-500 mt-0.5">
+        <aside className="w-72 bg-zinc-900/95 border-l border-zinc-800 flex flex-col z-10">
+          <div className="p-4 border-b border-zinc-800">
+            <h2 className="text-sm font-bold text-white">Hotspots</h2>
+            <p className="text-[11px] text-zinc-500 mt-0.5">
               {isEditMode ? 'Click the model to add. Click a pin to edit.' : 'Click a pin to view its details.'}
             </p>
           </div>
 
           <div className="flex-1 overflow-y-auto p-3 space-y-2">
             {hotspots.length === 0 ? (
-              <div className="text-center py-10 text-xs text-gray-600">
+              <div className="text-center py-10 text-xs text-zinc-600">
                 No hotspots yet.<br />Click on the 3D model to place your first pin.
               </div>
             ) : (
@@ -357,18 +355,18 @@ function AnnotatePageInner() {
                   onClick={() => handleHotspotClick(hotspot)}
                   className={`w-full text-left p-3 rounded-xl border transition-all text-xs ${
                     (isEditMode ? editingHotspot?.id : selectedHotspot?.id) === hotspot.id
-                      ? 'bg-blue-500/10 border-blue-500/40 text-white'
-                      : 'bg-gray-950 border-gray-800 text-gray-300 hover:border-gray-600'
+                      ? 'bg-white/10 border-white/40 text-white'
+                      : 'bg-zinc-950 border-zinc-800 text-zinc-300 hover:border-zinc-600'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-0.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />
-                    <span className="font-semibold truncate">{hotspot.label}</span>
+                    <div className="w-1.5 h-1.5 rounded-full bg-white flex-shrink-0" />
+                    <span className="font-semibold truncate text-white">{hotspot.label}</span>
                     {hotspot.category && (
-                      <span className="ml-auto text-[10px] text-gray-500 bg-gray-800 px-1.5 rounded flex-shrink-0">{hotspot.category}</span>
+                      <span className="ml-auto text-[10px] text-zinc-500 bg-zinc-800 px-1.5 rounded flex-shrink-0">{hotspot.category}</span>
                     )}
                   </div>
-                  <p className="text-gray-500 text-[11px] truncate pl-3.5">{hotspot.title}</p>
+                  <p className="text-zinc-500 text-[11px] truncate pl-3.5">{hotspot.title}</p>
                 </button>
               ))
             )}
@@ -379,25 +377,25 @@ function AnnotatePageInner() {
       {/* Form Modal */}
       {isFormOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-          <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
               <div>
                 <h3 className="text-sm font-bold text-white">
                   {editingHotspot ? 'Edit Hotspot' : 'New Hotspot'}
                 </h3>
                 {pendingHit && (
-                  <p className="text-[10px] text-gray-500 font-mono mt-0.5">
+                  <p className="text-[10px] text-zinc-500 font-mono mt-0.5">
                     ({hitToStrings(pendingHit).position})
                   </p>
                 )}
               </div>
-              <button onClick={handleClose} className="text-gray-500 hover:text-white text-lg leading-none">✕</button>
+              <button onClick={handleClose} className="text-zinc-500 hover:text-white text-lg leading-none">✕</button>
             </div>
 
             <div className="p-5 space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">
+                  <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-1.5">
                     Label <span className="text-red-400">*</span>
                   </label>
                   <input
@@ -405,23 +403,23 @@ function AnnotatePageInner() {
                     placeholder="e.g. Helmet"
                     value={formData.label}
                     onChange={e => setFormData(p => ({ ...p, label: e.target.value }))}
-                    className="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                    className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">Category</label>
+                  <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-1.5">Category</label>
                   <input
                     type="text"
                     placeholder="e.g. Safety"
                     value={formData.category}
                     onChange={e => setFormData(p => ({ ...p, category: e.target.value }))}
-                    className="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                    className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">
+                <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-1.5">
                   Title <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -429,67 +427,70 @@ function AnnotatePageInner() {
                   placeholder="Full component name"
                   value={formData.title}
                   onChange={e => setFormData(p => ({ ...p, title: e.target.value }))}
-                  className="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">Description</label>
+                <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-1.5">Description</label>
                 <textarea
                   rows={3}
                   placeholder="Describe this component..."
                   value={formData.description}
                   onChange={e => setFormData(p => ({ ...p, description: e.target.value }))}
-                  className="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 resize-none"
+                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white resize-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">Display Order</label>
+                  <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-1.5">Display Order</label>
                   <input
                     type="number"
                     value={formData.order}
                     onChange={e => setFormData(p => ({ ...p, order: Number(e.target.value) }))}
-                    className="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">Camera Orbit</label>
+                  <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-1.5">Camera Orbit</label>
                   <input
                     type="text"
                     value={formData.cameraOrbit}
                     onChange={e => setFormData(p => ({ ...p, cameraOrbit: e.target.value }))}
-                    className="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-blue-500"
+                    className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-white"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 px-5 py-4 border-t border-gray-800">
+            <div className="flex items-center gap-2 px-5 py-4 border-t border-zinc-800">
               {editingHotspot && (
-                <button
+                <Button
                   onClick={handleDelete}
                   disabled={saving}
-                  className="px-4 py-2 text-xs font-semibold text-red-400 border border-red-500/30 rounded-xl hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                  variant="destructive"
+                  size="sm"
                 >
                   Delete
-                </button>
+                </Button>
               )}
               <div className="flex-1" />
-              <button
+              <Button
                 onClick={handleClose}
-                className="px-4 py-2 text-xs font-medium text-gray-400 hover:text-white transition-colors"
+                variant="ghost"
+                size="sm"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleSave}
                 disabled={saving || !formData.label.trim()}
-                className="px-5 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-colors disabled:opacity-50"
+                variant="default"
+                size="sm"
               >
                 {saving ? 'Saving...' : editingHotspot ? 'Update' : 'Save Hotspot'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -500,7 +501,7 @@ function AnnotatePageInner() {
 
 export default function AnnotatePage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-950 flex items-center justify-center text-gray-400 text-sm">Loading editor...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-400 text-sm">Loading editor...</div>}>
       <AnnotatePageInner />
     </Suspense>
   );
