@@ -29,10 +29,11 @@ export default function HeatmapOverlay({ gazeData }: HeatmapOverlayProps) {
   const getColor = (count: number) => {
     const intensity = count / maxCount;
     if (intensity === 0) return 'transparent';
-    if (intensity < 0.25) return 'rgba(255, 255, 255, 0.15)';
-    if (intensity < 0.5) return 'rgba(255, 255, 255, 0.35)';
-    if (intensity < 0.75) return 'rgba(255, 255, 255, 0.6)';
-    return 'rgba(255, 255, 255, 0.85)';
+    // green (low) → yellow → red (high)
+    const r = Math.round(255 * Math.min(intensity * 2, 1));
+    const g = Math.round(255 * Math.min((1 - intensity) * 2, 1));
+    const a = 0.2 + intensity * 0.65;
+    return `rgba(${r}, ${g}, 0, ${a.toFixed(2)})`;
   };
 
   return (
