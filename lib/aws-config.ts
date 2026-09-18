@@ -58,6 +58,34 @@ export const PREUPLOADED_MODELS = [
     description: 'Ergonomic multi-seater commercial reception sofa.',
     icon: '🛋️',
   },
+  {
+    name: 'Millennium Falcon',
+    key: 'assets/Millennium_Falcon.glb',
+    category: 'Aerospace & Vehicles',
+    description: 'Iconic Star Wars YT-1300 Corellian freighter with detailed hull panels and quad laser cannons.',
+    icon: '🚀',
+  },
+  {
+    name: 'Manufacturing Robot',
+    key: 'assets/Manufacturing_Robot.glb',
+    category: 'Industrial & Heavy Equipment',
+    description: 'Multi-axis industrial robotic arm assembly unit for automated manufacturing lines.',
+    icon: '🤖',
+  },
+  {
+    name: 'Showspace Drone',
+    key: 'assets/Showspace_Drone.glb',
+    category: 'Aerospace & Vehicles',
+    description: 'DJI Phantom-class quadcopter drone with detailed rotor assembly and camera gimbal.',
+    icon: '🛸',
+  },
+  {
+    name: 'Tesla Model 3 (Red)',
+    key: 'assets/Tesla3_Red.glb',
+    category: 'Automotive',
+    description: 'Full-scale Tesla Model 3 in red with detailed interior, wheels, and body panels.',
+    icon: '🚗',
+  },
 ];
 
 export function getS3PublicUrl(assetKey: string): string {
