@@ -2,14 +2,12 @@
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Briefcase, KeyRound, Mail } from 'lucide-react';
 
 export default function SignInPage() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -30,7 +28,10 @@ export default function SignInPage() {
       setError('Invalid email or password');
       setLoading(false);
     } else {
-      router.push('/rep');
+      // Hard redirect so the browser sends the fresh session cookie on the next request.
+      // Soft navigation (router.push) races against cookie commit and causes middleware to
+      // redirect back to signin inside cross-origin iframes.
+      window.location.href = '/rep';
     }
   };
 
