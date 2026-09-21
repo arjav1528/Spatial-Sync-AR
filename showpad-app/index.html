@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpatialSync AR</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #09090b;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    #loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      gap: 16px;
+    }
+
+    #loading-title {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    #loading-sub {
+      font-size: 13px;
+      color: #71717a;
+    }
+
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border: 2px solid #27272a;
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    #error {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      gap: 12px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    #error-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #dc2626;
+    }
+
+    #error-msg {
+      font-size: 13px;
+      color: #71717a;
+      line-height: 1.5;
+    }
+
+    #app-frame {
+      display: none;
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #09090b;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loading">
+    <div class="spinner"></div>
+    <div id="loading-title">SpatialSync AR</div>
+    <div id="loading-sub">Initializing…</div>
+  </div>
+
+  <div id="error">
+    <div id="error-title">Could not load SpatialSync AR</div>
+    <div id="error-msg"></div>
+  </div>
+
+  <iframe
+    id="app-frame"
+    allow="camera; microphone; xr-spatial-tracking; gyroscope; accelerometer"
+    allowfullscreen
+  ></iframe>
+
+  <script>
+    const BASE_URL = 'https://spatial-sync.vercel.app';
+
+    const loading = document.getElementById('loading');
+    const loadingSub = document.getElementById('loading-sub');
+    const errorDiv = document.getElementById('error');
+    const errorMsg = document.getElementById('error-msg');
+    const frame = document.getElementById('app-frame');
+
+    function showError(msg) {
+      loading.style.display = 'none';
+      errorDiv.style.display = 'flex';
+      errorMsg.textContent = msg;
+    }
+
+    function launchApp(path) {
+      const url = BASE_URL + path;
+      frame.src = url;
+
+      frame.onload = () => {
+        loading.style.display = 'none';
+        frame.style.display = 'block';
+      };
+
+      frame.onerror = () => {
+        showError('Failed to load the app. Check your network connection and try again.');
+      };
+
+      // Fallback if onload never fires (e.g. CSP blocks)
+      setTimeout(() => {
+        if (loading.style.display !== 'none') {
+          showError(
+            'The app took too long to load. Your network may be blocking the connection to ' + BASE_URL
+          );
+        }
+      }, 15000);
+    }
+
+    // Try to initialise with the Showpad App SDK if available.
+    // Falls back to launching the rep dashboard directly if SDK is absent
+    // (useful when opening index.html standalone for local testing).
+    if (window.showpad && typeof window.showpad.init === 'function') {
+      loadingSub.textContent = 'Loading Showpad context…';
+
+      window.showpad.init().then(function (context) {
+        // context.asset may contain the currently open asset details.
+        // We hand off to the rep dashboard; the rep can pick / start a session there.
+        launchApp('/rep');
+      }).catch(function (err) {
+        showError('Showpad SDK initialisation failed: ' + (err && err.message ? err.message : err));
+      });
+    } else {
+      // No SDK present — dev / standalone mode
+      loadingSub.textContent = 'Dev mode — loading rep dashboard…';
+      launchApp('/rep');
+    }
+  </script>
+
+</body>
+</html>
