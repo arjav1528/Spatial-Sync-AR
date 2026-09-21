@@ -1,6 +1,13 @@
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
+// In production (HTTPS) NextAuth prefixes cookies with __Secure- by default.
+// We must match that prefix when overriding cookie options, otherwise the
+// middleware's getToken() looks for __Secure-next-auth.session-token but finds
+// next-auth.session-token (or vice versa) and treats the session as missing.
+const useSecureCookies = process.env.NEXTAUTH_URL?.startsWith('https://') ?? process.env.NODE_ENV === 'production';
+const cookiePrefix = useSecureCookies ? '__Secure-' : '';
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -10,7 +17,6 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        // Sales Rep authentication (role: 'rep')
         if (credentials?.email && credentials?.password) {
           return {
             id: 'rep-1',
@@ -44,33 +50,33 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
   secret: process.env.NEXTAUTH_SECRET,
-  // SameSite=None is required for cookies to work inside cross-origin iframes
-  // (e.g. Showpad embedding this app on a different domain)
+  // SameSite=None lets cookies work inside cross-origin iframes (Showpad embedding this app).
+  // Cookie names must match NextAuth's environment-aware defaults (__Secure- prefix on HTTPS).
   cookies: {
     sessionToken: {
-      name: 'next-auth.session-token',
+      name: `${cookiePrefix}next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: 'none' as const,
         path: '/',
-        secure: true,
+        secure: useSecureCookies,
       },
     },
     callbackUrl: {
-      name: 'next-auth.callback-url',
+      name: `${cookiePrefix}next-auth.callback-url`,
       options: {
         sameSite: 'none' as const,
         path: '/',
-        secure: true,
+        secure: useSecureCookies,
       },
     },
     csrfToken: {
-      name: 'next-auth.csrf-token',
+      name: `${cookiePrefix}next-auth.csrf-token`,
       options: {
         httpOnly: true,
         sameSite: 'none' as const,
         path: '/',
-        secure: true,
+        secure: useSecureCookies,
       },
     },
   },
