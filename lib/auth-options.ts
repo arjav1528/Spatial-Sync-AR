@@ -44,4 +44,34 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
   secret: process.env.NEXTAUTH_SECRET,
+  // SameSite=None is required for cookies to work inside cross-origin iframes
+  // (e.g. Showpad embedding this app on a different domain)
+  cookies: {
+    sessionToken: {
+      name: 'next-auth.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'none' as const,
+        path: '/',
+        secure: true,
+      },
+    },
+    callbackUrl: {
+      name: 'next-auth.callback-url',
+      options: {
+        sameSite: 'none' as const,
+        path: '/',
+        secure: true,
+      },
+    },
+    csrfToken: {
+      name: 'next-auth.csrf-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'none' as const,
+        path: '/',
+        secure: true,
+      },
+    },
+  },
 };
