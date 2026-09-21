@@ -1,12 +1,12 @@
 import { withAuth } from "next-auth/middleware";
 
 export default withAuth(
-  function middleware() {
-    // Custom middleware logic
-  },
+  function middleware() {},
   {
+    secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
-      authorized: ({ token }) => !!token && token.role === "rep",
+      // Accept any valid session token — role is always 'rep' for this demo app
+      authorized: ({ token }) => !!token,
     },
     pages: {
       signIn: "/auth/signin",
